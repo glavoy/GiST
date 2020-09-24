@@ -10,15 +10,37 @@ using System.Windows.Forms;
 
 namespace gist
 {
-    public partial class Main : Form
+    public partial class newSurvey : Form
     {
-        public Main()
+        public newSurvey()
         {
             InitializeComponent();
         }
 
-        private void button1_Click(object sender, EventArgs e)
+
+        private void newSurvey_Load(object sender, EventArgs e)
         {
+            CreateQuestion();
+        }
+
+        private void nextButton_Click(object sender, EventArgs e)
+        {
+            Controls.Clear();
+            AddTextBox("Question goes Here");
+        }
+
+
+
+
+
+        private void CreateQuestion()
+        {
+            // Controls.Clear();
+            //InitializeComponent();
+
+
+            AddRadioButtons(3);
+
 
         }
 
@@ -49,6 +71,7 @@ namespace gist
             Controls.Add(textBox1);
 
         }
+
 
     }
 }

@@ -1,0 +1,11 @@
+C:\Geoff\Applications\gist\bin\Debug\gist.exe.config
+C:\Geoff\Applications\gist\bin\Debug\gist.exe
+C:\Geoff\Applications\gist\bin\Debug\gist.pdb
+C:\Geoff\Applications\gist\obj\Debug\gist.csprojAssemblyReference.cache
+C:\Geoff\Applications\gist\obj\Debug\gist.Properties.Resources.resources
+C:\Geoff\Applications\gist\obj\Debug\gist.csproj.GenerateResource.cache
+C:\Geoff\Applications\gist\obj\Debug\gist.csproj.CoreCompileInputs.cache
+C:\Geoff\Applications\gist\obj\Debug\gist.exe
+C:\Geoff\Applications\gist\obj\Debug\gist.pdb
+C:\Geoff\Applications\gist\obj\Debug\gist.mainMenu.resources
+C:\Geoff\Applications\gist\obj\Debug\gist.newSurvey.resources
