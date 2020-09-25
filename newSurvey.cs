@@ -24,14 +24,17 @@ namespace gist
         }
 
 
+
         private void newSurvey_Load(object sender, EventArgs e)
         {
             CreateQuestion();
+
+            
         }
 
         private void nextButton_Click(object sender, EventArgs e)
         {
-            Controls.Clear();
+
             AddTextBox("Question goes Here");
         }
 
@@ -41,6 +44,12 @@ namespace gist
 
         private void CreateQuestion()
         {
+
+            
+            AddRadioButtons(3);
+
+
+
             // Controls.Clear();
             //InitializeComponent();
 
@@ -100,7 +109,7 @@ namespace gist
 
             XmlDocument itemDoc = new XmlDocument();
             itemDoc.Load(@"..\..\xml\gist.xml");
-            Console.WriteLine("DocumentElement has {0} children.", itemDoc.DocumentElement.ChildNodes.Count);
+            Console.WriteLine("DocumentElement has {0} questions.", itemDoc.DocumentElement.ChildNodes.Count);
 
             // iterate through top-level elements
             foreach (XmlNode itemNode in itemDoc.DocumentElement.ChildNodes)
@@ -172,14 +181,17 @@ namespace gist
 
         private void AddRadioButtons(int count)
         {
-            //Controls.Clear();
+            responsePanel.Controls.Clear();
+
+
+
             for (int i = 0; i <= count; i++)
             {
                 RadioButton rdo = new RadioButton();
                 rdo.Name = "RadioButton" + i;
                 rdo.Text = "Radio Button " + i;
-                rdo.Location = new Point(5, 30 * i);
-                this.Controls.Add(rdo);
+                rdo.Location = new Point(5, 25 * i);
+                responsePanel.Controls.Add(rdo);
             }
 
         }
@@ -191,14 +203,19 @@ namespace gist
 
         private void AddTextBox(string question)
         {
-            Controls.Clear();
+            //Controls.Clear();
+            responsePanel.Controls.Clear();
             TextBox textBox1 = new TextBox
             {
                 Text = "",
                 Location = new Point(48, 64),
                 Size = new Size(104, 16)
             };
-            Controls.Add(textBox1);
+            responsePanel.Controls.Add(textBox1);
+
+
+            prevButton.Show();
+            nextButton.Show();
 
         }
 

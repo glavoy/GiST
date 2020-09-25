@@ -64,22 +64,43 @@ namespace gist.Properties {
         ///   Looks up a localized string similar to &lt;?xml version=&apos;1.0&apos; encoding=&apos;utf-8&apos;?&gt;
         ///&lt;survey name=&apos;gist&apos;&gt;
         ///
-        ///
-        ///	&lt;!-- ********************************************************************* --&gt;
-        ///	&lt;!-- **********                xml examples            ******************* --&gt;
-        ///	&lt;!-- ********************************************************************* --&gt;
-        ///  
-        ///
-        ///
         ///	&lt;question type=&apos;radio&apos; fieldname=&apos;radio1&apos; fieldtype =&apos;integer&apos;&gt;
         ///		&lt;text&gt;Please select an option&lt;/text&gt;
         ///		&lt;responses&gt;
         ///			&lt;response value=&apos;1&apos;&gt;Option 1 Text&lt;/response&gt;
-        ///			&lt;response value=&apos;2&apos;&gt;Op [rest of string was truncated]&quot;;.
+        ///			&lt;response value=&apos;2&apos;&gt;Option 2 Text&lt;/response&gt;
+        ///			&lt;response value=&apos;3&apos;&gt;Option 3 Text&lt;/response&gt;
+        ///			&lt;response value=&apos;4&apos;&gt;Option 4 Text&lt;/response&gt;
+        ///      &lt;response value=&apos;5&apos;&gt;Option 5 Text&lt;/response&gt;
+        ///		&lt;/responses&gt;
+        ///	&lt;/question&gt;
+        ///
+        ///	
+        ///  &lt;question type =&apos;text&apos; fieldname =&apos;text1&apos;  [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string gist {
             get {
                 return ResourceManager.GetString("gist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap next {
+            get {
+                object obj = ResourceManager.GetObject("next", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap previous {
+            get {
+                object obj = ResourceManager.GetObject("previous", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
             }
         }
     }
