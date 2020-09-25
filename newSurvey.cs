@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
+using System.Xml.Linq;
 
 namespace gist
 {
@@ -15,6 +16,7 @@ namespace gist
     {
 
         //private readonly System.Xml.XmlDocument xr = new System.Xml.XmlDocument();
+        int maxResponses = 24;
 
 
 
@@ -46,14 +48,14 @@ namespace gist
         {
 
             
-            AddRadioButtons(3);
+            
 
 
 
             // Controls.Clear();
             //InitializeComponent();
 
-            System.Xml.XmlDocument xr = new System.Xml.XmlDocument();
+            //System.Xml.XmlDocument xr = new System.Xml.XmlDocument();
 
             //xr.LoadXml(My.Resources.ResourceManager.GetObject(Survey))
             //Dim myNode As XmlNode
@@ -111,6 +113,18 @@ namespace gist
             itemDoc.Load(@"..\..\xml\gist.xml");
             Console.WriteLine("DocumentElement has {0} questions.", itemDoc.DocumentElement.ChildNodes.Count);
 
+
+
+            XmlNode myNode;
+            //myNode = xr.GetElementsByTagName("question").Item(0);
+            myNode = itemDoc.GetElementsByTagName("question").Item(0);
+
+
+
+            // this looks like it may work as well
+            //XDocument survey = XDocument.Parse(gist.Properties.Resources.gist);
+
+
             // iterate through top-level elements
             foreach (XmlNode itemNode in itemDoc.DocumentElement.ChildNodes)
             {
@@ -146,7 +160,7 @@ namespace gist
             Console.ReadLine();
 
 
-
+            AddRadioButtons(3, myNode);
 
 
 
@@ -179,20 +193,40 @@ namespace gist
 
 
 
-        private void AddRadioButtons(int count)
+        private void AddRadioButtons(int count, XmlNode question)
         {
             responsePanel.Controls.Clear();
 
 
+            string[,] ResponseArray = new string[maxResponses, 2];
 
-            for (int i = 0; i <= count; i++)
+            int ResponseArraySize = 0;   //number of responses
+
+
+            //For Each node As XmlNode In inNode.SelectNodes("responses/response")
+            foreach (XmlNode node in question.SelectNodes("responses/response"))
+            {
+                //ResponseArray[ResponseArraySize, 0] = { node.InnerText, node.Attributes["value"].Value};
+
+
+
+                ResponseArray[ResponseArraySize, 0] = node.InnerText;
+                ResponseArray[ResponseArraySize, 1] = node.Attributes["value"].Value;
+                ResponseArraySize++;
+            }
+
+            
+
+            for (int i = 0; i < ResponseArraySize; i++)
             {
                 RadioButton rdo = new RadioButton();
-                rdo.Name = "RadioButton" + i;
-                rdo.Text = "Radio Button " + i;
-                rdo.Location = new Point(5, 25 * i);
+                rdo.Text = ResponseArray[i, 0];
+                rdo.Tag = ResponseArray[i, 1];
+                rdo.Location = new Point(5, 20 * i);
                 responsePanel.Controls.Add(rdo);
+
             }
+
 
         }
 

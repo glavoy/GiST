@@ -1,18 +1,24 @@
 <?xml version='1.0' encoding='utf-8'?>
 <survey name='gist'>
 
+  
+  
+  
 	<question type='radio' fieldname='radio1' fieldtype ='integer'>
 		<text>Please select an option</text>
 		<responses>
 			<response value='1'>Option 1 Text</response>
 			<response value='2'>Option 2 Text</response>
 			<response value='3'>Option 3 Text</response>
-			<response value='4'>Option 4 Text</response>
-      <response value='5'>Option 5 Text</response>
+			<response value='4'>Jose</response>
+      <response value='5'>Geoff</response>
 		</responses>
 	</question>
 
 	
+  
+  
+  
   <question type ='text' fieldname ='text1' fieldtype ='text'>
     <text>Open text example.  Enter some text</text>
     <maxCharacters>80</maxCharacters>
