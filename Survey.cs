@@ -22,65 +22,40 @@ namespace gist
         // Maximum number of responses for 'radio' and 'checkbox' type questions
         readonly int maxResponses = 24; // maybe don't need this
 
-
-        //struct QuestionInfo
-        //{
-        //    public int quesNum;        // Question number from the xml file
-        //    public string fieldName;   // Field name from the xml file
-        //    public string fieldType;   // Field type from the xml file (string, integer, decimal, date, N/A - for Information screens)
-
-
-        //    //Dim QuesType As String          'Type of question [radio button (single response), checkbox (multiple response), or text (open text))
-        //    //Dim Response As String          'Text response.  All fields set to "-9" initially
-        //    //Dim Value As String             'used to store the numeric 'value' of responses.  Using a string to store multiple values. e.g. 1,3,5
-        //    //Dim PrevQues As Integer         'the previous question before this one - in case someone hits the 'Previous' button. Default = -9
-        //    //Dim HasBeenAnswered As Boolean  'has question been answered before?  If so display the previous answer
-        //};
-        //public class XmlFile
-        //{
-        //    XmlDocument curSurvey = new XmlDocument();
-        //    curSurvey.Load(@"..\..\xml\gist.xml");
-        //    Console.WriteLine("DocumentElement has {0} questions.", curSurvey.DocumentElement.ChildNodes.Count);
-        //}
-
         // Public variable for the xml document
-        readonly XmlDocument xmlDoc = new XmlDocument();
-
+        readonly XmlDocument xmlSurvey = new XmlDocument();
 
         public class QuestionInfo
         {
-            public int quesNum;        // Question number from the xml file
-            public string fieldName;   // Field name from the xml file
-            public string fieldType;   // Field type from the xml file (string, integer, decimal, date, N/A - for Information screens)
+            public int quesNum;             // Question number from the xml file
+            public string fieldName;        // Field name from the xml file
+            public string fieldType;        // Field type from the xml file (string, integer, decimal, date, N/A - for Information screens)
+            public string quesType;         // Type of question [radio button (single response), checkbox (multiple response), or text (open text))
+            public string response;         // Text response.  All fields set to "-9" initially
+            public string value;            // used to store the numeric 'value' of responses.  Using a string to store multiple values. e.g. 1,3,5
+            public int prevQues;            // the previous question before this one - in case someone hits the 'Previous' button. Default = -9
+            public Boolean hasBeenAnswered; // Has question been answered before?  If so display the previous response
+
         }
 
-
-
-            //Dim QuesType As String          'Type of question [radio button (single response), checkbox (multiple response), or text (open text))
-            //Dim Response As String          'Text response.  All fields set to "-9" initially
-            //Dim Value As String             'used to store the numeric 'value' of responses.  Using a string to store multiple values. e.g. 1,3,5
-            //Dim PrevQues As Integer         'the previous question before this one - in case someone hits the 'Previous' button. Default = -9
-            //Dim HasBeenAnswered As Boolean  'has question been answered before?  If so display the previous answer
-
-
-
-
-        // Need to get the number of questions to set the aray size
-        //QuestionInfo[] QuestionInfoArray = new QuestionInfo[2];
-
-
         public List<QuestionInfo> QuestionInfoList = new List<QuestionInfo>();
+        
         int numQuestions;
+
+        int currentQuestion;
+        int previousQuestion;
+
+
 
 
         private void Survey_Load(object sender, EventArgs e)
         {
             // Load the xml document for the current survey
-            xmlDoc.Load(@"..\..\xml\gist.xml");
+            xmlSurvey.Load(@"..\..\xml\gist.xml");
 
             // Get the total number of questions
             // Total number of nodes named 'question' 
-            numQuestions = xmlDoc.DocumentElement.ChildNodes.Count;
+            numQuestions = xmlSurvey.DocumentElement.ChildNodes.Count;
             
 
             // If it is an existing survey...
@@ -93,13 +68,7 @@ namespace gist
             {
                 // This is a new survey
                 InitializeSurvey();
-                //CreateQuestion();
             }
-
-
-            
-
-            
         }
 
 
@@ -112,162 +81,78 @@ namespace gist
 
         private void InitializeSurvey()
         {
-            //PubVar.modifyingSurvey = true;
-            //for (int i = 0; i < 2; i++)
-            //{
-
-            //    QuestionInfoArray[i].quesNum = i;
-            //    QuestionInfoArray[i].fieldName = String.Concat("Name", Convert.ToString(i));
-            //    QuestionInfoArray[i].fieldType = String.Concat("Type", Convert.ToString(i));
-
-            //}
-
-            for (int i = 0; i < numQuestions; i++)
+            // For each question in the xml file, add the question information
+            // to the QuestionInfoList
+            XmlNodeList question = xmlSurvey.GetElementsByTagName("question");
+            for (int i = 0; i < question.Count; i++)
             {
-                var question = new QuestionInfo
+                var curQuestion = new QuestionInfo
                 {
                     quesNum = i,
-                    fieldName = String.Concat("Name", Convert.ToString(i)),
-                    fieldType = String.Concat("Type", Convert.ToString(i))
+                    fieldName = question[i].Attributes["fieldname"].Value,
+                    fieldType = question[i].Attributes["fieldtype"].Value,
+                    quesType = question[i].Attributes["type"].Value,
+                    response = "-9",
+                    value = "-9",
+                    prevQues = -9,
+                    hasBeenAnswered = false
                 };
 
-                QuestionInfoList.Add(question);
+                // Add the question to the list
+                QuestionInfoList.Add(curQuestion);
             }
 
 
+            //set Current and Previous question to 0 and create the first question
+            previousQuestion = -1;
+            currentQuestion = 0;
+            QuestionInfoList[currentQuestion].prevQues = previousQuestion;
+            CreateQuestion(currentQuestion, false);
         }
+
+
+
 
         private void NextButton_Click(object sender, EventArgs e)
         {
-            //XmlDocument itemDoc = new XmlDocument();
-            //itemDoc.Load(@"..\..\xml\gist.xml");
-            //Console.WriteLine("DocumentElement has {0} questions.", itemDoc.DocumentElement.ChildNodes.Count);
+            ShowNextQuestion();
+        }
 
-
-
-            XmlNode myNode;
-            //myNode = xr.GetElementsByTagName("question").Item(0);
-            //myNode = curSurvey.GetElementsByTagName("question").Item(1);
-
-
-
-            //AddTextBox(myNode);
-            this.Close();
+        private void ShowNextQuestion()
+        {
+            currentQuestion += 1;
+            CreateQuestion(currentQuestion, QuestionInfoList[currentQuestion].hasBeenAnswered);
         }
 
 
 
-
-
-        private void CreateQuestion()
+        private void CreateQuestion(int questionNum, Boolean ShowPreviousResponse)
         {
+            // This gets the entire Node List, but we only need a single node
+            XmlNodeList question = xmlSurvey.GetElementsByTagName("question");
 
-            
+            // We need something like this
+//            XmlNode myNode = xmlSurvey.GetElementsByTagName("question").Item(questionNum);
 
-            // Controls.Clear();
-            //InitializeComponent();
-
-            //System.Xml.XmlDocument xr = new System.Xml.XmlDocument();
-
-            //xr.LoadXml(My.Resources.ResourceManager.GetObject(Survey))
-            //Dim myNode As XmlNode
-            //myNode = xr.GetElementsByTagName("question").Item(question_num)
-
-
-
-            // The following code works with "gist - works with example.xml"
-
-            //XmlDocument itemDoc = new XmlDocument();
-            //itemDoc.Load(@"..\..\xml\gist.xml");
-            //Console.WriteLine("DocumentElement has {0} children.", itemDoc.DocumentElement.ChildNodes.Count);
-
-            //// iterate through top-level elements
-            //foreach (XmlNode itemNode in itemDoc.DocumentElement.ChildNodes)
-            //{
-            //    // because we know that the node is an element, we can do this:
-            //    XmlElement itemElement = (XmlElement)itemNode;
-            //    Console.WriteLine("\n[Item]: {0}\n{1}",
-            //        itemElement.Attributes["name"].Value,
-            //        itemElement.Attributes["description"].Value);
-            //    if (itemNode.ChildNodes.Count == 0)
-            //        Console.WriteLine("(No additional Information)\n");
-            //    else
-            //    {
-            //        foreach (XmlNode childNode in itemNode.ChildNodes)
-            //        {
-            //            if (childNode.Name.ToUpper() == "ATTRIBUTE")
-            //            {
-            //                Console.WriteLine("{0} : {1}",
-            //                    childNode.Attributes["name"].Value,
-            //                    childNode.Attributes["value"].Value);
-            //            }
-            //            else if (childNode.Name.ToUpper() == "SPECIALS")
-            //            {
-            //                foreach (XmlNode specialNode in childNode.ChildNodes)
-            //                {
-            //                    Console.WriteLine("*{0}:{1}",
-            //                       specialNode.Attributes["name"].Value,
-            //                       specialNode.Attributes["description"].Value);
-            //                }
-            //            }
-            //        }
-            //    }
-            //}
-            //Console.ReadLine();
-
-
-
-
-            XmlDocument itemDoc = new XmlDocument();
-            itemDoc.Load(@"..\..\xml\gist.xml");
-            Console.WriteLine("DocumentElement has {0} questions.", itemDoc.DocumentElement.ChildNodes.Count);
-
-
-
-            XmlNode myNode;
-            //myNode = xr.GetElementsByTagName("question").Item(0);
-            myNode = itemDoc.GetElementsByTagName("question").Item(0);
-
-
-            // this looks like it may work as well
-            //XDocument survey = XDocument.Parse(gist.Properties.Resources.gist);
-
-
-            // iterate through top-level elements
-            foreach (XmlNode itemNode in itemDoc.DocumentElement.ChildNodes)
+            //disable the "Previous" button if we are at the beginning of the survey
+            if (currentQuestion > 0)
             {
-                // because we know that the node is an element, we can do this:
-                XmlElement itemElement = (XmlElement)itemNode;
-                Console.WriteLine("\n[question]: {0}\n{1}",
-                    itemElement.Attributes["type"].Value,
-                    itemElement.Attributes["fieldname"].Value);
-                //if (itemNode.ChildNodes.Count == 0)
-                //    Console.WriteLine("(No additional Information)\n");
-                //else
-                //{
-                //    foreach (XmlNode childNode in itemNode.ChildNodes)
-                //    {
-                //        if (childNode.Name == "text")
-                //        {
-                //            Console.WriteLine("{0} : {1}",
-                //                childNode.Attributes["name"].Value,
-                //                childNode.Attributes["value"].Value);
-                //        }
-                //        else if (childNode.Name.ToUpper() == "SPECIALS")
-                //        {
-                //            foreach (XmlNode specialNode in childNode.ChildNodes)
-                //            {
-                //                Console.WriteLine("*{0}:{1}",
-                //                   specialNode.Attributes["name"].Value,
-                //                   specialNode.Attributes["description"].Value);
-                //            }
-                //        }
-                //    }
-                //}
+                PrevButton.Enabled = true;
             }
-            Console.ReadLine();
 
-            AddRadioButtons(myNode);
+            switch (question[questionNum].Attributes["type"].Value)
+            {
+                case "radio":
+                    AddRadioButtons(question[questionNum]);
+                    break;
+                case "checkbox":
+                    AddCheckBoxes(question[questionNum]);
+                    break;
+                case "text":
+                    AddTextBox(question[questionNum]);
+                    break;
+            }
+
         }
 
 
@@ -306,7 +191,37 @@ namespace gist
 
 
 
+        private void AddCheckBoxes(XmlNode question)
+        {
+            responsePanel.Controls.Clear();
 
+            questionLabel.Text = question.SelectSingleNode("text").InnerText;
+
+            string[,] ResponseArray = new string[maxResponses, 2];
+
+            int ResponseArraySize = 0;   //number of responses
+
+            foreach (XmlNode node in question.SelectNodes("responses/response"))
+            {
+                ResponseArray[ResponseArraySize, 0] = node.InnerText;
+                ResponseArray[ResponseArraySize, 1] = node.Attributes["value"].Value;
+                ResponseArraySize++;
+            }
+
+
+
+            for (int i = 0; i < ResponseArraySize; i++)
+            {
+                CheckBox chkbox = new CheckBox
+                {
+                    Text = ResponseArray[i, 0],
+                    Tag = ResponseArray[i, 1],
+                    Location = new Point(5, 20 * i)
+                };
+                responsePanel.Controls.Add(chkbox);
+            }
+
+        }
 
 
         private void AddTextBox(XmlNode question)

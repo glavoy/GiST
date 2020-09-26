@@ -5,7 +5,9 @@
   
   
 	<question type='radio' fieldname='radio1' fieldtype ='integer'>
-		<text>Please select an option . well lt me cereate a rell long lkglfg jdlgj dgjd gldkjg ldgkj dlgkdjg ldkfgj dfgkj sdlgkj sdlgkjs dlgkjsd glksjg lksdgj slkgj sdlgkj sdlgksj dglksjd glksdjg lsdkgj lsdkgj sdlkgj sdlkgjsdf lkg jsfldkgjs g</text>
+		<text>Please select an option . 
+    
+well lt me cereate a rell long lkglfg jdlgj dgjd gldkjg ldgkj dlgkdjg ldkfgj dfgkj sdlgkj sdlgkjs dlgkjsd glksjg lksdgj slkgj sdlgkj sdlgksj dglksjd glksdjg lsdkgj lsdkgj sdlkgj sdlkgjsdf lkg jsfldkgjs g</text>
 		<responses>
 			<response value='1'>Option 1 Text</response>
 			<response value='2'>Option 2 Text</response>
@@ -15,7 +17,18 @@
 		</responses>
 	</question>
 
-	
+
+
+  <question type='checkbox' fieldname='checkbox1' fieldtype ='text'>
+    <text>This is an example of a multiple response question</text>
+    <responses>
+      <response value='1'>Option 1 Text</response>
+      <response value='2'>Option 2 Text</response>
+      <response value='3'>Option 3 Text</response>
+      <response value='4'>Jose</response>
+      <response value='5'>Geoff</response>
+    </responses>
+  </question>
   
   
   
