@@ -31,11 +31,10 @@ namespace gist
             public string fieldName;        // Field name from the xml file
             public string fieldType;        // Field type from the xml file (string, integer, decimal, date, N/A - for Information screens)
             public string quesType;         // Type of question [radio button (single response), checkbox (multiple response), or text (open text))
-            public string response;         // Text response.  All fields set to "-9" initially
-            public string value;            // used to store the numeric 'value' of responses.  Using a string to store multiple values. e.g. 1,3,5
-            public int prevQues;            // the previous question before this one - in case someone hits the 'Previous' button. Default = -9
+            public string response;         // Text response. All fields set to "-9" initially
+            public string value;            // Used to store the numeric 'value' of responses.  Using a string to store multiple values. e.g. 1,3,5
+            public int prevQues;            // The previous question before this one - in case someone hits the 'Previous' button. Default = -9
             public Boolean hasBeenAnswered; // Has question been answered before?  If so display the previous response
-
         }
 
         public List<QuestionInfo> QuestionInfoList = new List<QuestionInfo>();
@@ -115,12 +114,21 @@ namespace gist
 
         private void NextButton_Click(object sender, EventArgs e)
         {
+            currentQuestion += 1;
             ShowNextQuestion();
         }
 
+
+        private void PrevButton_Click(object sender, EventArgs e)
+        {
+            currentQuestion -= 1;
+            ShowNextQuestion();
+        }
+
+
         private void ShowNextQuestion()
         {
-            currentQuestion += 1;
+            
             CreateQuestion(currentQuestion, QuestionInfoList[currentQuestion].hasBeenAnswered);
         }
 
@@ -128,11 +136,7 @@ namespace gist
 
         private void CreateQuestion(int questionNum, Boolean ShowPreviousResponse)
         {
-            // This gets the entire Node List, but we only need a single node
-            XmlNodeList question = xmlSurvey.GetElementsByTagName("question");
-
-            // We need something like this
-//            XmlNode myNode = xmlSurvey.GetElementsByTagName("question").Item(questionNum);
+            XmlNode curQuestion = xmlSurvey.GetElementsByTagName("question").Item(questionNum);
 
             //disable the "Previous" button if we are at the beginning of the survey
             if (currentQuestion > 0)
@@ -140,16 +144,17 @@ namespace gist
                 PrevButton.Enabled = true;
             }
 
-            switch (question[questionNum].Attributes["type"].Value)
+            //switch (question[questionNum].Attributes["type"].Value)
+            switch (curQuestion.Attributes["type"].Value)
             {
                 case "radio":
-                    AddRadioButtons(question[questionNum]);
+                    AddRadioButtons(curQuestion);
                     break;
                 case "checkbox":
-                    AddCheckBoxes(question[questionNum]);
+                    AddCheckBoxes(curQuestion);
                     break;
                 case "text":
-                    AddTextBox(question[questionNum]);
+                    AddTextBox(curQuestion);
                     break;
             }
 
@@ -237,5 +242,7 @@ namespace gist
             };
             responsePanel.Controls.Add(textBox1);
         }
+
+
     }
 }

@@ -55,6 +55,7 @@
             this.PrevButton.Size = new System.Drawing.Size(116, 99);
             this.PrevButton.TabIndex = 1;
             this.PrevButton.UseVisualStyleBackColor = true;
+            this.PrevButton.Click += new System.EventHandler(this.PrevButton_Click);
             // 
             // responsePanel
             // 
@@ -84,7 +85,7 @@
             this.label1.TabIndex = 4;
             this.label1.Text = "Additional text";
             // 
-            // newSurvey
+            // Survey
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -94,7 +95,7 @@
             this.Controls.Add(this.responsePanel);
             this.Controls.Add(this.PrevButton);
             this.Controls.Add(this.NextButton);
-            this.Name = "newSurvey";
+            this.Name = "Survey";
             this.Text = "newSurvey";
             this.Load += new System.EventHandler(this.Survey_Load);
             this.ResumeLayout(false);
