@@ -61,25 +61,26 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="mainMenu.cs">
+    <Compile Include="MainMenu.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="mainMenu.Designer.cs">
-      <DependentUpon>mainMenu.cs</DependentUpon>
+    <Compile Include="MainMenu.Designer.cs">
+      <DependentUpon>MainMenu.cs</DependentUpon>
     </Compile>
-    <Compile Include="newSurvey.cs">
+    <Compile Include="PublicVars.cs" />
+    <Compile Include="Survey.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="newSurvey.Designer.cs">
-      <DependentUpon>newSurvey.cs</DependentUpon>
+    <Compile Include="Survey.Designer.cs">
+      <DependentUpon>Survey.cs</DependentUpon>
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <EmbeddedResource Include="mainMenu.resx">
-      <DependentUpon>mainMenu.cs</DependentUpon>
+    <EmbeddedResource Include="MainMenu.resx">
+      <DependentUpon>MainMenu.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="newSurvey.resx">
-      <DependentUpon>newSurvey.cs</DependentUpon>
+    <EmbeddedResource Include="Survey.resx">
+      <DependentUpon>Survey.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

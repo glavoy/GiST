@@ -7,5 +7,5 @@ C:\Geoff\Applications\gist\obj\Debug\gist.csproj.CoreCompileInputs.cache
 C:\Geoff\Applications\gist\obj\Debug\gist.exe
 C:\Geoff\Applications\gist\obj\Debug\gist.pdb
 C:\Geoff\Applications\gist\obj\Debug\gist.mainMenu.resources
-C:\Geoff\Applications\gist\obj\Debug\gist.newSurvey.resources
+C:\Geoff\Applications\gist\obj\Debug\gist.Survey.resources
 C:\Geoff\Applications\gist\obj\Debug\gist.csprojAssemblyReference.cache

@@ -10,16 +10,29 @@ using System.Windows.Forms;
 
 namespace gist
 {
-    public partial class mainMenu : Form
+    public partial class MainMenu : Form
     {
-        public mainMenu()
+        public MainMenu()
         {
             InitializeComponent();
         }
 
+        PublicVars PubVar = new PublicVars();
+
         private void newSurveyButton_Click(object sender, EventArgs e)
         {
-            new newSurvey().Show();
+            PubVar.survey = "gist";
+            PubVar.modifyingSurvey = false;
+            //new Survey().Show();
+   
+
+
+            Form blah = new Survey();
+            blah.ShowDialog();  // process return result if needed
+            blah.Dispose();
+
+
+
         }
 
 

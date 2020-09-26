@@ -1,6 +1,6 @@
 ﻿namespace gist
 {
-    partial class mainMenu
+    partial class MainMenu
     {
         /// <summary>
         /// Required designer variable.

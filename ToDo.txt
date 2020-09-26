@@ -1,0 +1,1 @@
+- add SW_VER to app config only
