@@ -17,19 +17,21 @@ namespace gist
             InitializeComponent();
         }
 
-        PublicVars PubVar = new PublicVars();
+        PublicVars PublicVars = new PublicVars();
 
         private void newSurveyButton_Click(object sender, EventArgs e)
         {
-            PubVar.survey = "gist";
-            PubVar.modifyingSurvey = false;
-            //new Survey().Show();
-   
+            PublicVars.subjid = subjIDTextBox.Text;
+            PublicVars.survey = "gist";
+            PublicVars.modifyingSurvey = false;
+
+            Form survey = new Survey();
+            survey.ShowDialog();
+            survey.Dispose();
 
 
-            Form blah = new Survey();
-            blah.ShowDialog();  // process return result if needed
-            blah.Dispose();
+            // for testing purposes - will delete
+            subjIDLabel.Text = PublicVars.subjid;
 
 
 
@@ -37,7 +39,10 @@ namespace gist
 
 
 
-
-
+        // End the program
+        private void exitButton_Click(object sender, EventArgs e)
+        {
+            System.Environment.Exit(0);
+        }
     }
 }

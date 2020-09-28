@@ -4,30 +4,6 @@ namespace gist
 {
     public class PublicVars
     {
-
-
-        private static Boolean _ConnStr = true;
-        public static Boolean ConnStr
-        {
-            get
-            {
-                return _ConnStr;
-            }
-            set
-            {
-                _ConnStr = value;
-            }
-        }
-
-
-
-
-
-
-
-
-
-
         // Name of the survey.
         // Must be the same name as the XML file.
         public string survey;

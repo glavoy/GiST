@@ -1,1 +1,14 @@
 - add SW_VER to app config only
+- add progress bar
+- add try/catch to all functions
+
+
+//////////////////////////////////////////////
+DOCUMENTATION
+//////////////////////////////////////////////
+
+Specify all the question types in the xml file:
+	radio
+	checkbox
+	text
+	
