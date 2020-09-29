@@ -39,24 +39,26 @@
             // 
             // NextButton
             // 
-            this.NextButton.BackgroundImage = global::gist.Properties.Resources.next;
-            this.NextButton.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center;
+            this.NextButton.BackColor = System.Drawing.SystemColors.Highlight;
+            this.NextButton.BackgroundImage = global::gist.Properties.Resources.nextArrow;
+            this.NextButton.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.NextButton.Location = new System.Drawing.Point(169, 332);
             this.NextButton.Name = "NextButton";
             this.NextButton.Size = new System.Drawing.Size(116, 99);
             this.NextButton.TabIndex = 0;
-            this.NextButton.UseVisualStyleBackColor = true;
+            this.NextButton.UseVisualStyleBackColor = false;
             this.NextButton.Click += new System.EventHandler(this.NextButton_Click);
             // 
             // PrevButton
             // 
-            this.PrevButton.BackgroundImage = global::gist.Properties.Resources.previous;
-            this.PrevButton.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center;
+            this.PrevButton.BackColor = System.Drawing.SystemColors.Highlight;
+            this.PrevButton.BackgroundImage = global::gist.Properties.Resources.prevArrow;
+            this.PrevButton.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.PrevButton.Location = new System.Drawing.Point(12, 332);
             this.PrevButton.Name = "PrevButton";
             this.PrevButton.Size = new System.Drawing.Size(116, 99);
             this.PrevButton.TabIndex = 1;
-            this.PrevButton.UseVisualStyleBackColor = true;
+            this.PrevButton.UseVisualStyleBackColor = false;
             this.PrevButton.Click += new System.EventHandler(this.PrevButton_Click);
             // 
             // responsePanel

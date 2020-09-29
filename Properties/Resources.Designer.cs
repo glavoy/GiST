@@ -64,8 +64,10 @@ namespace gist.Properties {
         ///   Looks up a localized string similar to &lt;?xml version=&apos;1.0&apos; encoding=&apos;utf-8&apos;?&gt;
         ///&lt;survey name=&apos;gist&apos;&gt;
         ///
+        ///
+        ///  
         ///	&lt;question type=&apos;radio&apos; fieldname=&apos;radio1&apos; fieldtype =&apos;integer&apos;&gt;
-        ///		&lt;text&gt;Please select an option&lt;/text&gt;
+        ///		&lt;text&gt;This is an example of a single choice option&lt;/text&gt;
         ///		&lt;responses&gt;
         ///			&lt;response value=&apos;1&apos;&gt;Option 1 Text&lt;/response&gt;
         ///			&lt;response value=&apos;2&apos;&gt;Option 2 Text&lt;/response&gt;
@@ -75,8 +77,9 @@ namespace gist.Properties {
         ///		&lt;/responses&gt;
         ///	&lt;/question&gt;
         ///
-        ///	
-        ///  &lt;question type =&apos;text&apos; fieldname =&apos;text1&apos;  [rest of string was truncated]&quot;;.
+        ///  
+        ///  
+        ///  &lt;question  [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string gist {
             get {
@@ -90,6 +93,26 @@ namespace gist.Properties {
         internal static System.Drawing.Bitmap next {
             get {
                 object obj = ResourceManager.GetObject("next", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap nextArrow {
+            get {
+                object obj = ResourceManager.GetObject("nextArrow", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap prevArrow {
+            get {
+                object obj = ResourceManager.GetObject("prevArrow", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

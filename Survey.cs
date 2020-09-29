@@ -6,6 +6,8 @@ using System.Linq;
 using System.Windows.Forms;
 using System.Windows.Forms.VisualStyles;
 using System.Xml;
+using System.Configuration;
+
 
 namespace gist
 {
@@ -62,6 +64,27 @@ namespace gist
 
         // Stores the current 'Auto' value for automatic question type
         string currentAutoValue = "";
+
+
+
+        /************************************************************
+         This section is used for configuration of a specific survey
+         ************************************************************/
+        // Define any field names and minimum lenght expected
+        // The next button will not become visible until the 
+        // minimum lenght is reached
+        Tuple<string, int>[] minLengths =
+              { new Tuple<string, int>("intid", 2),
+                new Tuple<string, int>("some_dec", 4),
+                new Tuple<string, int>("add_new", 1) };
+
+        /* End of configuration section
+        ***********************************************************/
+
+
+
+
+
 
 
 
@@ -136,6 +159,7 @@ namespace gist
             currentQuestion = 0;
             QuestionInfoList[currentQuestion].prevQues = previousQuestion;
             CreateQuestion(currentQuestion, false);
+            
         }
 
 
@@ -180,7 +204,7 @@ namespace gist
         private void PrevButton_Click(object sender, EventArgs e)
         {
             // Set the previous question number stored in the 'prevQues' varible of the QuestionInfoList
-            previousQuestion = QuestionInfoList[currentQuestion].prevQues;
+            //previousQuestion = QuestionInfoList[currentQuestion].prevQues;
             
             
             
@@ -246,7 +270,9 @@ namespace gist
             // Check for skips........
 
             // We can't use the current question to set the previous question if it
-            // is an automatic question
+            // is an automatic question since we need to go back to the last question
+            // displayed.  If we jsut go back to the previous, it is an aotomatic and
+            // will jsut move forward again!
             if (QuestionInfoList[currentQuestion].quesType != "automatic")
             {
                 previousQuestion = currentQuestion;
@@ -266,8 +292,7 @@ namespace gist
         {
             XmlNode curQuestion = xmlSurvey.GetElementsByTagName("question").Item(questionNum);
 
-            // Disable the "Previous" button if we are at the beginning of the survey
-            PrevButton.Enabled = currentQuestion > 0;
+
 
 
             switch (curQuestion.Attributes["type"].Value)
@@ -281,8 +306,31 @@ namespace gist
                 case "text":
                     AddTextBox(curQuestion, ShowPreviousResponse);
                     break;
+                case "automatic":
+                    AddAutomatic();
+                    break;
             }
 
+
+            if (ShowPreviousResponse == true)
+            {
+                EnableNextButton();
+                NextButton.Focus();
+            }
+            else
+            {
+                DisableNextButton();
+            }
+
+            // Disable the "Previous" button if we are at the beginning of the survey
+            if (QuestionInfoList[currentQuestion].prevQues == -1)
+            {
+                DisablePrevButton();
+            }
+            else
+            {
+                EnablePrevButton();
+            }
         }
 
 
@@ -321,6 +369,8 @@ namespace gist
                     Location = new Point(5, 20 * i)
                 };
                 responsePanel.Controls.Add(rdo);
+
+                // Add handler for Click event
                 rdo.Click += new System.EventHandler(this.RadioButtonHandler_Click);
 
 
@@ -338,15 +388,15 @@ namespace gist
             // Uncomment the code below when the radio button handler is working
 
             // Check to see if we should disable the "Next" button
-            if (ShowPreviousResponse == true && foundPrevResponse == true)
-            {
-                NextButton.Enabled = true;
-                NextButton.Focus();
-            }
-            else
-            {
-                NextButton.Enabled = false;
-            }
+            //if (ShowPreviousResponse == true && foundPrevResponse == true)
+            //{
+            //    NextButton.Visible = true;
+            //    NextButton.Focus();
+            //}
+            //else
+            //{
+            //    NextButton.Visible = false;
+            //}
         }
 
 
@@ -398,8 +448,120 @@ namespace gist
                     Location = new Point(5, 20 * i)
                 };
                 responsePanel.Controls.Add(chkbox);
+
+                // Add handler for CheckedChanged event
+                chkbox.CheckedChanged += new System.EventHandler(this.CheckBoxHandler_CheckedChanged);
+
             }
+
+
+            // Show previous responses, if appropriate
+            if (ShowPreviousResponse == true)
+            {
+                ShowCheckBoxResponses();
+                EnableNextButton();
+                NextButton.Focus();
+            }
+            else
+            {
+                DisableNextButton();
+            }
+
+
         }
+
+
+        // This handles the Click event for the Checkboxes.
+        // It is used to determine wether of not we should 
+        // enable or disable the 'Next' button (if none are checked - it is disabled)
+        private void CheckBoxHandler_CheckedChanged(object sender, EventArgs e)
+        {
+            int numCheckBoxesChecked = 0;
+
+            foreach (Control control in responsePanel.Controls)
+            {
+                switch (control.GetType().Name)
+                {
+                    case "CheckBox":
+                        if (control is CheckBox checkbox && checkbox.Checked)
+                        {
+                            numCheckBoxesChecked += 1;
+                        }
+                        break;
+                }
+            }
+
+            // If none are checked, disable the next button
+            if (numCheckBoxesChecked > 0)
+            {
+                EnableNextButton();
+            }
+            else
+            {
+                DisableNextButton();
+            }
+
+        }
+
+
+        // This fucntion is used to show the checkbox as checked if it was previously checked
+        private void ShowCheckBoxResponses()
+        {
+
+            string[] valueArray = QuestionInfoList[currentQuestion].value.Split(',');
+
+            foreach (Control control in responsePanel.Controls)
+            {
+                switch (control.GetType().Name)
+                {
+                    case "CheckBox":
+                        if (control is CheckBox checkbox && valueArray.Contains(checkbox.Tag))
+                        {
+                            checkbox.Checked = true;
+                        }
+                        break;
+                }
+            }
+
+        }
+
+
+
+
+
+
+
+
+        /*
+         
+
+                    Dim aControl As Control
+            Dim aGroupControl As Control
+
+            Dim ValueArray(MaxResponses)
+            ValueArray = Split(QuestionInfoArray(CurrentQuestion).Value, ",")
+
+            'Determine the number of check bosex checked
+            For Each aControl In Me.Controls
+                ' Differentiate output based on the type of the control
+                Select Case TypeName(aControl)
+                    Case "GroupBox"
+                        ' Need to go inside of the GroupBox to yank out the RadioButtons
+                        For Each aGroupControl In CType(aControl, GroupBox).Controls
+                            If TypeOf aGroupControl Is CheckBox Then
+                                'For i = 0 To ValueArray.Length
+                                If ValueArray.Contains(CType(aGroupControl, CheckBox).Tag) Then
+                                    CType(aGroupControl, CheckBox).Checked = True
+                                End If
+                            End If
+
+                        Next
+                End Select
+            Next
+
+         */
+
+
 
 
 
@@ -432,25 +594,156 @@ namespace gist
             questionLabel.Text = question.SelectSingleNode("text").InnerText;
 
             responsePanel.Controls.Clear();
-            TextBox textBox1 = new TextBox
+            TextBox newTextBox = new TextBox
             {
                 Text = "",
                 Location = new Point(48, 64),
                 Size = new Size(104, 16)
             };
-            responsePanel.Controls.Add(textBox1);
+            responsePanel.Controls.Add(newTextBox);
+
+            newTextBox.Focus();
+            newTextBox.CharacterCasing = CharacterCasing.Upper;
+
+            // Add event handlers for KeyUp and KeyPress
+            newTextBox.KeyUp += new KeyEventHandler(TextBoxHandlerKeyUp);
+            newTextBox.KeyPress += new KeyPressEventHandler(TextBoxHandlerKeyPress);
+
+
+            // To Do
+            // Add 'special' buttons
+            // Also, this is displaying first 
+
+            if (ShowPreviousResponse == true)
+            {
+                newTextBox.Text = QuestionInfoList[currentQuestion].response;
+            }
+
+
+        }
+
+
+        // Event handler for keyup event on textbox
+        // This is used to determine if the 'Next' button should be enabled or disabled
+        private void TextBoxHandlerKeyUp(object sender, EventArgs e)
+        {
+            try
+            {
+                int MinLength = 1;
+
+                //  Verify that the type of control triggering this event is a text box
+                if ((sender.GetType().Name == "TextBox"))
+                {
+
+
+                    foreach (var minLength in minLengths)
+                    {
+                        if (minLength.Item1 == QuestionInfoList[currentQuestion].fieldName)
+                        {
+                            MinLength = minLength.Item2;
+                        }
+                    }
+
+
+
+                    //switch (QuestionInfoList[currentQuestion].fieldName)
+                    //{
+                    //    case "intid":
+                    //        MinLength = 2;
+                    //        break;
+                    //}
+                }
+
+                // Check the length of the text - if it > 0, then enable the "Next button"
+                // Unless a length is specified above for a particular field
+                if (((TextBox)(sender)).Text.Length >= MinLength)
+                {
+                    EnableNextButton();
+                }
+                else
+                {
+                    DisableNextButton();
+                }
+
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+
         }
 
 
 
+        // Event handler for keypress event on the textbox
+        // This is used to determine if the key pressed was a number or a decimal point
+        private void TextBoxHandlerKeyPress(object sender, KeyPressEventArgs e)
+        {
+            //  Verify that the type of control triggering this event is indeed a Radio Button.
+            if ((sender.GetType().Name == "TextBox"))
+            {
+
+                // Allow numbers only
+                if (QuestionInfoList[currentQuestion].fieldType == "integer")
+                {
+                    if (!Char.IsNumber(e.KeyChar) && !Char.IsControl(e.KeyChar))
+                    {
+                        e.Handled = true;
+                        MessageBox.Show("Only numbers are allowed!");
+                        return;
+                    }
+                }
+
+                // Allow numbers and decimal place
+                // Ascii code for '.' is 46
+                if (QuestionInfoList[currentQuestion].fieldType == "decimal")
+                {
+                    if (!Char.IsNumber(e.KeyChar) && !Char.IsControl(e.KeyChar) && e.KeyChar != 46)
+                    {
+                        e.Handled = true;
+                        MessageBox.Show("Only numbers are allowed!");
+                        return;
+                    }
+                }
+            }
+        }
 
 
 
+        private void AddAutomatic()
+        {
+            switch (QuestionInfoList[currentQuestion].fieldName)
+            {
+                // Software Version
+                case "swver":
+                    currentAutoValue = ConfigurationManager.AppSettings["swver"];
+                    break;
+
+                // Start time of interview
+                case "starttime":
 
 
+                    // To Do - create GetValue() and all other helper functions
+                    currentAutoValue = "01/01/1899 00:00:00";
+                    //currentAutoValue = GetValue("starttime");
+                    if (currentAutoValue == "" || 
+                        currentAutoValue == "01/01/1899 00:00:00" || 
+                        currentAutoValue == "01/01/1899 12:00:00 AM" || 
+                        currentAutoValue == "-9")
+                    {
+                        DateTime now = DateTime.Now;
+                        currentAutoValue = now.ToString("dd/MM/yyyy HH:mm:ss");
+     
+                    }
+                    break;
+            }
+
+            // Automatically click the 'Next' button
+            NextButton_Click(null, null);
+        }
 
 
-
+ 
 
 
 
@@ -527,13 +820,6 @@ namespace gist
                                 anyValueSelected = true;
                             }
 
-                            // If none are seleceted, then the Text and Value variables 
-                            // were updated in the code for the 'Special' button_click.
-                            if (anyValueSelected == false)
-                            {
-                                surveyResponseText = QuestionInfoList[currentQuestion].response;
-                                surveyResponseValue = QuestionInfoList[currentQuestion].value;
-                            }
                             break;
 
 
@@ -571,10 +857,20 @@ namespace gist
                             break;
                     }
                 }
+
+                // If none are seleceted, then the Text and Value variables 
+                // were updated in the code for the 'Special' button_click.
+                if (anyValueSelected == false)
+                {
+                    surveyResponseText = QuestionInfoList[currentQuestion].response;
+                    surveyResponseValue = QuestionInfoList[currentQuestion].value;
+                }
+
+
+                QuestionInfoList[currentQuestion].response = surveyResponseText;
+                QuestionInfoList[currentQuestion].value = surveyResponseValue;
+                QuestionInfoList[currentQuestion].hasBeenAnswered = true;
             }
-            QuestionInfoList[currentQuestion].response = surveyResponseText;
-            QuestionInfoList[currentQuestion].value = surveyResponseValue;
-            QuestionInfoList[currentQuestion].hasBeenAnswered = true;
         }
 
 
@@ -585,5 +881,47 @@ namespace gist
         {
             MessageBox.Show("Done");
         }
+
+
+
+
+        /************************************************************
+         Helper Functions
+         ************************************************************/
+
+        // Disable Previous Button
+        private void DisablePrevButton()
+        {
+            PrevButton.BackColor = Color.LightGray;
+            PrevButton.Enabled = false;
+        }
+
+        // Enable Previous Button
+        private void EnablePrevButton()
+        {
+            PrevButton.BackColor = ColorTranslator.FromHtml("#4C75B4");
+            PrevButton.Enabled = true;
+        }
+
+        // Disable Next Button
+        private void DisableNextButton()
+        {
+            NextButton.BackColor = Color.LightGray;
+            NextButton.Enabled = false;
+        }
+
+        // Disable/Enable Previous/Next Buttons
+        private void EnableNextButton()
+        {
+            NextButton.BackColor = ColorTranslator.FromHtml("#4C75B4");
+            NextButton.Enabled = true;
+        }
+
+
+
+
+
+
+
     }
 }

@@ -49,6 +49,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -125,6 +126,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="images\previous.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="images\nextArrow.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="images\prevArrow.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

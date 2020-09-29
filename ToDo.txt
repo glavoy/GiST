@@ -12,3 +12,11 @@ Specify all the question types in the xml file:
 	checkbox
 	text
 	
+	
+fieldtype:
+	integer - text_integer, phone_num
+	decimal - text_decimal
+	text
+
+
+	
