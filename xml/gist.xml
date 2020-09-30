@@ -11,11 +11,12 @@
 
   <question type ='text' fieldname ='intid' fieldtype ='integer'>
     <text>Interviewer ID</text>
-    <maxCharacters>3</maxCharacters>
+    <maxCharacters>2</maxCharacters>
+    <rangeCheck minvalue='10' maxvalue ='50' message ='Invalid number!'></rangeCheck>
   </question>
 
 
-  <question type='checkbox' fieldname='checkbox1' fieldtype ='text'>
+  <!--<question type='checkbox' fieldname='checkbox1' fieldtype ='text'>
     <text>This is an example of a multiple response question</text>
     <responses>
       <response value='1'>Option 1 Text</response>
@@ -24,12 +25,12 @@
       <response value='4'>Option 4 Text</response>
       <response value='5'>Option 5 Text</response>
     </responses>
-  </question>
+  </question>-->
   
   
   
 	<question type='radio' fieldname='radio1' fieldtype ='integer'>
-		<text>This is an example of a single choice option</text>
+		<text>This is an example of a single [[intid]] choice option</text>
 		<responses>
 			<response value='1'>Option 1 Text</response>
 			<response value='2'>Option 2 Text</response>
@@ -43,6 +44,7 @@
   
   <question type ='text' fieldname ='some_dec' fieldtype ='decimal'>
     <text>Open text example.  Enter some text</text>
+    <maxCharacters>4</maxCharacters>
   </question>
   
   

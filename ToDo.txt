@@ -1,11 +1,32 @@
-- add SW_VER to app config only
 - add progress bar
 - add try/catch to all functions
+- add combobox
+- add calendar
+- create all helper funcitons: GetResponse(), etc.
+- skips
+- logic checkbox
+- cancel interview
+- remove unused 'using' declarations
+- add special buttons
+- scroll bars for large text boxes
+- got through all functions and make sure all logic is in the function (compare to VB functions)
+- add possible values check
+- save data
+- view/modify survey
+
+
+
+
+
+
 
 
 //////////////////////////////////////////////
 DOCUMENTATION
 //////////////////////////////////////////////
+
+rangeCheck - changed this for only range - can add other checks like possible values
+
 
 Specify all the question types in the xml file:
 	radio
@@ -20,3 +41,8 @@ fieldtype:
 
 
 	
+Numeric check (note name cahanged to 'numericCheck' from 'numeric_check'), also do not need 'value' child node:
+	minvalue - minimum vaue of number range
+	maxvalue - maximum vaue of number range
+	other_values - anotehr value than may be acceptable, but not in the range (can be a many values, separated by a comma)
+	message - Error message when number is not within range

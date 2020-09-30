@@ -20,6 +20,22 @@ namespace gist
         }
 
 
+        /************************************************************
+         This section is used to configure a specific survey
+         ************************************************************/
+        
+        // Define any field names and minimum length expected
+        // The next button will not become visible until the 
+        // minimum lenght is reached
+        readonly Tuple<string, int>[] minLengths =
+              { new Tuple<string, int>("intid", 2),
+                new Tuple<string, int>("some_dec", 4),
+                new Tuple<string, int>("add_new", 1) };
+
+        /* End of configuration section
+        ***********************************************************/
+
+
         // PublicVars has all the global public variables
         PublicVars PublicVars = new PublicVars();
 
@@ -30,8 +46,8 @@ namespace gist
 
         // QuestionInfo class
         // There is a new QuestionInfo object created for each question in the xml file
-        // Each QuestionInfo object is added to the QuestionInfoList List
-        // The QuestionInfoList is populated in either the InitializeSurvey() or the 
+        // Each QuestionInfo object is added to the QuestionInfoList List.
+        // The QuestionInfoList is populated in either the InitializeNewSurvey() or the 
         // GetResponsesFromPreviousSurvey() function depending on whether it is a new
         // survey or an existing survey
         public class QuestionInfo
@@ -62,28 +78,6 @@ namespace gist
         int previousQuestion;
 
 
-        // Stores the current 'Auto' value for automatic question type
-        string currentAutoValue = "";
-
-
-
-        /************************************************************
-         This section is used for configuration of a specific survey
-         ************************************************************/
-        // Define any field names and minimum lenght expected
-        // The next button will not become visible until the 
-        // minimum lenght is reached
-        Tuple<string, int>[] minLengths =
-              { new Tuple<string, int>("intid", 2),
-                new Tuple<string, int>("some_dec", 4),
-                new Tuple<string, int>("add_new", 1) };
-
-        /* End of configuration section
-        ***********************************************************/
-
-
-
-
 
 
 
@@ -109,7 +103,7 @@ namespace gist
             else
             {
                 // ... otherwise, it is a new survey
-                InitializeSurvey();
+                InitializeNewSurvey();
             }
         }
 
@@ -129,7 +123,7 @@ namespace gist
 
 
         // Function to initialize the QuestionInfoList with default values
-        private void InitializeSurvey()
+        private void InitializeNewSurvey()
         {
             // For each question in the xml file, add the question information
             // to the QuestionInfoList - field name, field type and type of question
@@ -153,13 +147,11 @@ namespace gist
                 QuestionInfoList.Add(curQuestion);
             }
 
-
             // Set Current and Previous questions and create the first question
             previousQuestion = -1;
             currentQuestion = 0;
             QuestionInfoList[currentQuestion].prevQues = previousQuestion;
             CreateQuestion(currentQuestion, false);
-            
         }
 
 
@@ -174,15 +166,21 @@ namespace gist
             // If we are at the end of the survey, save the data
             if (IsValidResponse() == true)
             {
-                // Save data to the QuestionInfoList
-                SaveDataToList();
-
-                // Set the next and previous question numbers
-                SetQuestionNumbers();
+                // Save data to the QuestionInfoList if it not an automatic question
+                // Responses for automatic questions are saved to the list in
+                // the AddAutomatic() function
+                if (QuestionInfoList[currentQuestion].quesType != "automatic")
+                {
+                    SaveDataToList();
+                }
+               
 
                 // If we are not at the end of the survey....
                 if (currentQuestion < numQuestions - 1)
                 {
+                    // ...set the next and previous question numbers
+                    SetQuestionNumbers();
+
                     // ...show the next question 
                     CreateQuestion(currentQuestion, QuestionInfoList[currentQuestion].hasBeenAnswered);
                 }
@@ -207,8 +205,6 @@ namespace gist
             //previousQuestion = QuestionInfoList[currentQuestion].prevQues;
             
             
-            
-            
             currentQuestion = QuestionInfoList[currentQuestion].prevQues;
 
             /* This was the 'old' code - need to test if we actually need this or not
@@ -230,11 +226,7 @@ namespace gist
 
             // The first question's 'prevQues' was initialized to -1, so in this case,
             // set the current question to 0.
-            if (currentQuestion == -1)
-            {
-                currentQuestion = 0;
-            }
-
+            currentQuestion = currentQuestion == -1 ? currentQuestion = 0 : currentQuestion;
 
             // Show the question
             CreateQuestion(currentQuestion, QuestionInfoList[currentQuestion].hasBeenAnswered);
@@ -245,11 +237,30 @@ namespace gist
 
 
         // This function checks to see if the response from the user is valid
+        // There are Numeric checks, Logic checks and in some cases, Manual checks
         private Boolean IsValidResponse()
         {
-            return true;
+            
+            // Get the current question from the XML file
+            XmlNode question = xmlSurvey.GetElementsByTagName("question").Item(currentQuestion);
 
-            // Numeric range check
+
+            // Range Check
+
+            // Check if there is a Range Check for this question
+            XmlNode rangeCheck = question.SelectSingleNode("rangeCheck");
+
+            // If there is a numeric check, call the RangeCheck() function
+            if (rangeCheck != null)
+            {
+                if (NumericRangeCheck(int.Parse(rangeCheck.Attributes["minvalue"].Value),
+                                     int.Parse(rangeCheck.Attributes["maxvalue"].Value),
+                                     rangeCheck.Attributes["message"].Value) == false)
+                {
+                    return false;
+                }
+            }
+
 
 
             // Logic check
@@ -257,7 +268,72 @@ namespace gist
 
             // Manaul checks
 
+
+            return true;
         }
+
+
+        private Boolean NumericRangeCheck(int minvalue, int maxvalue, string message)
+        {
+            foreach (Control control in responsePanel.Controls)
+            {
+                switch (control.GetType().Name)
+                {
+                    case "TextBox":
+                        if (long.Parse(control.Text) >= minvalue && long.Parse(control.Text) <= maxvalue)
+                        {
+                            return true;
+                        }
+                        break;
+                }
+            }
+            MessageBox.Show(message);
+            return false;
+        }
+
+
+
+    //    Private Function TestNumericCheckOK(ByVal minvalue As String, ByVal maxvalue As String, ByVal other_values As String, ByVal message As String) As Boolean
+    //    TestNumericCheckOK = True
+    //    Try
+    //        Dim aControl As Control
+    //        Dim CurrentValue As String = "-9"
+
+    //        Dim QuestionType As String = ""
+    //        Dim FieldType As String = ""
+
+    //        'Get the current value from the text box
+    //        For Each aControl In Me.Controls
+    //            Select Case TypeName(aControl)
+    //                Case "TextBox"
+    //                    CurrentValue = aControl.Text
+    //            End Select
+    //        Next
+
+    //        'if it's a numeric response....
+    //        If IsNumeric(CurrentValue) = True Then
+    //            'if the response is numeric, but is a text question e.g. age, numer of acres of land, etc.
+    //            If CLng(CurrentValue) >= CLng(minvalue) And CLng(CurrentValue) <= CLng(maxvalue) Then
+    //                TestNumericCheckOK = True
+    //                Exit Function
+    //            ElseIf TestOtherValues(CLng(CurrentValue), other_values) = True Then
+    //                TestNumericCheckOK = True
+    //            Else
+    //                TestNumericCheckOK = False
+    //                MsgBox(message, MsgBoxStyle.Critical, "Invalid Response")
+    //            End If
+    //        End If
+    //    Catch ex As Exception
+    //        MessageBox.Show(ex.Message)
+    //    End Try
+    //End Function
+
+
+
+
+
+
+
 
 
 
@@ -278,8 +354,7 @@ namespace gist
                 previousQuestion = currentQuestion;
             }
 
-
-
+            // Increment the question number
             currentQuestion += 1;
             QuestionInfoList[currentQuestion].prevQues = previousQuestion;
         }
@@ -290,29 +365,32 @@ namespace gist
 
         private void CreateQuestion(int questionNum, Boolean ShowPreviousResponse)
         {
-            XmlNode curQuestion = xmlSurvey.GetElementsByTagName("question").Item(questionNum);
+            // Create an XML node containing all the information about the question
+            XmlNode question = xmlSurvey.GetElementsByTagName("question").Item(currentQuestion);
 
 
-
-
-            switch (curQuestion.Attributes["type"].Value)
+            // Call the appropriate function based on te question type
+            switch (question.Attributes["type"].Value)
             {
                 case "radio":
-                    AddRadioButtons(curQuestion, ShowPreviousResponse);
+                    AddRadioButtons(question);
                     break;
                 case "checkbox":
-                    AddCheckBoxes(curQuestion, ShowPreviousResponse);
+                    AddCheckBoxes(question);
                     break;
                 case "text":
-                    AddTextBox(curQuestion, ShowPreviousResponse);
+                    AddTextBox(question);
                     break;
                 case "automatic":
                     AddAutomatic();
                     break;
+                case "information":
+                    AddInformation(question);
+                    break;
             }
 
-
-            if (ShowPreviousResponse == true)
+            // If we are supposed to show the previous response or if it the last question
+            if (ShowPreviousResponse == true || questionNum == numQuestions - 1)
             {
                 EnableNextButton();
                 NextButton.Focus();
@@ -338,25 +416,19 @@ namespace gist
 
 
         // Add the radio buttons to the panel
-        private void AddRadioButtons(XmlNode question, Boolean ShowPreviousResponse)
+        private void AddRadioButtons(XmlNode question)
         {
             // Clear previous controls from response area
             responsePanel.Controls.Clear();
 
             // Display the question text
-            questionLabel.Text = question.SelectSingleNode("text").InnerText;
+            questionLabel.Text = SubstituteFieldNames(question.SelectSingleNode("text").InnerText);
 
             // Get a list of the responses
             XmlNodeList responses = question.SelectNodes("responses/response");
 
             // Populate a 'ResponseArray' with all of the responses for the current question
             string[,] ResponseArray = GetAllResponses(responses);
-
-
-
-            // used to make sure the previous response is valid
-            // mainly in case the user changes the HHID and makes village/sub, etc incalid
-            Boolean foundPrevResponse = false;
 
 
             // show the radio buttons on the panel
@@ -375,32 +447,17 @@ namespace gist
 
 
                 // if showing the question again, show previous response
-                if (ShowPreviousResponse == true && ResponseArray[i, 1] == QuestionInfoList[currentQuestion].value)
+                if (QuestionInfoList[currentQuestion].hasBeenAnswered == true && ResponseArray[i, 1] == QuestionInfoList[currentQuestion].value)
                 {
                     rdo.Checked = true;
-                    foundPrevResponse = true;
                 }
-         
+
 
             }
-
-
-            // Uncomment the code below when the radio button handler is working
-
-            // Check to see if we should disable the "Next" button
-            //if (ShowPreviousResponse == true && foundPrevResponse == true)
-            //{
-            //    NextButton.Visible = true;
-            //    NextButton.Focus();
-            //}
-            //else
-            //{
-            //    NextButton.Visible = false;
-            //}
         }
 
 
-
+        // This handles the click event for a radio button
         private void RadioButtonHandler_Click(object sender, EventArgs e)
         {
             try
@@ -416,7 +473,6 @@ namespace gist
             {
                 MessageBox.Show(ex.Message);
             }
-
         }
 
 
@@ -424,7 +480,7 @@ namespace gist
 
 
         // Add the check boxes to the panel
-        private void AddCheckBoxes(XmlNode question, Boolean ShowPreviousResponse)
+        private void AddCheckBoxes(XmlNode question)
         {
             // Clear previous controls from response area
             responsePanel.Controls.Clear();
@@ -456,18 +512,10 @@ namespace gist
 
 
             // Show previous responses, if appropriate
-            if (ShowPreviousResponse == true)
+            if (QuestionInfoList[currentQuestion].hasBeenAnswered == true)
             {
                 ShowCheckBoxResponses();
-                EnableNextButton();
-                NextButton.Focus();
             }
-            else
-            {
-                DisableNextButton();
-            }
-
-
         }
 
 
@@ -526,45 +574,6 @@ namespace gist
         }
 
 
-
-
-
-
-
-
-        /*
-         
-
-                    Dim aControl As Control
-            Dim aGroupControl As Control
-
-            Dim ValueArray(MaxResponses)
-            ValueArray = Split(QuestionInfoArray(CurrentQuestion).Value, ",")
-
-            'Determine the number of check bosex checked
-            For Each aControl In Me.Controls
-                ' Differentiate output based on the type of the control
-                Select Case TypeName(aControl)
-                    Case "GroupBox"
-                        ' Need to go inside of the GroupBox to yank out the RadioButtons
-                        For Each aGroupControl In CType(aControl, GroupBox).Controls
-                            If TypeOf aGroupControl Is CheckBox Then
-                                'For i = 0 To ValueArray.Length
-                                If ValueArray.Contains(CType(aGroupControl, CheckBox).Tag) Then
-                                    CType(aGroupControl, CheckBox).Checked = True
-                                End If
-                            End If
-
-                        Next
-                End Select
-            Next
-
-         */
-
-
-
-
-
         // This function is used by the AddRadioButtons and AddCheckBoxes functions.
         // It returns an array with the text to display and the numeric value
         private string[,] GetAllResponses(XmlNodeList responses)
@@ -588,21 +597,37 @@ namespace gist
 
 
 
-
-        private void AddTextBox(XmlNode question, Boolean ShowPreviousResponse)
+        // Adds the text box to the panel
+        private void AddTextBox(XmlNode question)
         {
+            // Show the question
             questionLabel.Text = question.SelectSingleNode("text").InnerText;
 
+            // Clear controls from previous question
             responsePanel.Controls.Clear();
+
+            // Create a new Text Box
             TextBox newTextBox = new TextBox
             {
                 Text = "",
                 Location = new Point(48, 64),
                 Size = new Size(104, 16)
             };
+
+            // Set the MaxLength property based on 'maxCharacters' in the XML file
+            XmlNode hasMaxCharacters = question.SelectSingleNode("maxCharacters");
+            if (hasMaxCharacters != null)
+            {
+                newTextBox.MaxLength = int.Parse(hasMaxCharacters.InnerText);
+            }
+
+            // Add the Text box to the panel
             responsePanel.Controls.Add(newTextBox);
 
+            // Set the focus on the Text box
             newTextBox.Focus();
+
+            // Make all text uppercase
             newTextBox.CharacterCasing = CharacterCasing.Upper;
 
             // Add event handlers for KeyUp and KeyPress
@@ -612,14 +637,11 @@ namespace gist
 
             // To Do
             // Add 'special' buttons
-            // Also, this is displaying first 
 
-            if (ShowPreviousResponse == true)
+            if (QuestionInfoList[currentQuestion].hasBeenAnswered == true)
             {
                 newTextBox.Text = QuestionInfoList[currentQuestion].response;
             }
-
-
         }
 
 
@@ -629,13 +651,14 @@ namespace gist
         {
             try
             {
+                // Sets the minimun length of text to enter in the Text box
                 int MinLength = 1;
 
                 //  Verify that the type of control triggering this event is a text box
                 if ((sender.GetType().Name == "TextBox"))
                 {
-
-
+                    // If the field is in the 'minLengths' Tuple array
+                    // Then we can set the minimum length of text to be entered
                     foreach (var minLength in minLengths)
                     {
                         if (minLength.Item1 == QuestionInfoList[currentQuestion].fieldName)
@@ -643,15 +666,6 @@ namespace gist
                             MinLength = minLength.Item2;
                         }
                     }
-
-
-
-                    //switch (QuestionInfoList[currentQuestion].fieldName)
-                    //{
-                    //    case "intid":
-                    //        MinLength = 2;
-                    //        break;
-                    //}
                 }
 
                 // Check the length of the text - if it > 0, then enable the "Next button"
@@ -683,9 +697,11 @@ namespace gist
             if ((sender.GetType().Name == "TextBox"))
             {
 
-                // Allow numbers only
+                // Allow numbers only for 'integer' type question
                 if (QuestionInfoList[currentQuestion].fieldType == "integer")
                 {
+                    // If key pressed was not a number or a special character,
+                    // display error message
                     if (!Char.IsNumber(e.KeyChar) && !Char.IsControl(e.KeyChar))
                     {
                         e.Handled = true;
@@ -694,14 +710,16 @@ namespace gist
                     }
                 }
 
-                // Allow numbers and decimal place
+                // Allow numbers and decimal place for 'decimal' type questions
                 // Ascii code for '.' is 46
                 if (QuestionInfoList[currentQuestion].fieldType == "decimal")
                 {
+                    // If key pressed was not a number, special character,
+                    // or a decimal, display error message
                     if (!Char.IsNumber(e.KeyChar) && !Char.IsControl(e.KeyChar) && e.KeyChar != 46)
                     {
                         e.Handled = true;
-                        MessageBox.Show("Only numbers are allowed!");
+                        MessageBox.Show("Only numbers and decimal point are allowed!");
                         return;
                     }
                 }
@@ -710,8 +728,14 @@ namespace gist
 
 
 
+        // Add the automatic question type
         private void AddAutomatic()
         {
+
+            // Stores the current 'Auto' value for automatic question type
+            string currentAutoValue = "";
+
+
             switch (QuestionInfoList[currentQuestion].fieldName)
             {
                 // Software Version
@@ -719,13 +743,10 @@ namespace gist
                     currentAutoValue = ConfigurationManager.AppSettings["swver"];
                     break;
 
+
                 // Start time of interview
                 case "starttime":
-
-
-                    // To Do - create GetValue() and all other helper functions
-                    currentAutoValue = "01/01/1899 00:00:00";
-                    //currentAutoValue = GetValue("starttime");
+                    currentAutoValue = GetValue("starttime");
                     if (currentAutoValue == "" || 
                         currentAutoValue == "01/01/1899 00:00:00" || 
                         currentAutoValue == "01/01/1899 12:00:00 AM" || 
@@ -738,12 +759,66 @@ namespace gist
                     break;
             }
 
+            // Update the information in the QuestionInfoList
+            QuestionInfoList[currentQuestion].response = currentAutoValue;
+            QuestionInfoList[currentQuestion].value = currentAutoValue;
+            QuestionInfoList[currentQuestion].hasBeenAnswered = true;
+
+
             // Automatically click the 'Next' button
             NextButton_Click(null, null);
         }
 
 
  
+        // Add the 'information' type question
+        private void AddInformation(XmlNode question)
+        {
+            // Clear the controls from previous question
+            responsePanel.Controls.Clear();
+
+            // Display the text
+            questionLabel.Text = question.SelectSingleNode("text").InnerText;
+
+            // Set the focus on the 'Next' button
+            NextButton.Focus();
+        }
+
+
+
+
+
+        // This function returns the questions text with any field names substutued
+        // as per the XML file.  Substituted field names are in the form [[xxxx]],
+        // where xxxx is the field name whose value is to be substituted
+        private string SubstituteFieldNames(string originalQuestion)
+        {
+            // Get index of '[[' in the original text
+            int startPos = originalQuestion.IndexOf("[[");
+
+            // Don't need to do anything if there is no substitution to do
+            if (startPos != -1)
+            {
+                // And get index of ']]' in the original text
+                int endPos = originalQuestion.IndexOf("]]");
+
+                // Get the field name between [[ xxx ]] in the original question
+                string fieldName = originalQuestion.Substring(startPos + 2, endPos - startPos - 2);
+
+                // Get the question object from the  QuestionInfoList for this fieldname
+                var question = QuestionInfoList.Find(item => item.fieldName == fieldName);
+
+                // return the new question
+                return originalQuestion.Replace(string.Concat("[[", fieldName, "]]"), question.response);
+
+            }
+
+            // No substitution performed, so return orignal string
+            return originalQuestion;
+        }
+
+
+
 
 
 
@@ -757,131 +832,133 @@ namespace gist
             // 'none' were selected, which means a 'Special' button was selected
             Boolean anyValueSelected = false;
 
+            // Variable used to keep track of which type of control is on the panel
+            string controlType = "";
+
             // Values to be saved to the QuestionInfoList Text and Value variables
             string surveyResponseText = "";
             string surveyResponseValue = "-9";
 
 
-            // If it is an automatic question, the current value is stored in the 'currentAutoValue' variable
-            if (QuestionInfoList[currentQuestion].quesType == "automatic")
+            // Loop through the controls on the panel
+            // There can only be one type of control at a time on the panel
+            // If it was an automatic question, the data was already saved
+            // into the QuestionInfoList
+            foreach (Control control in responsePanel.Controls)
             {
-                QuestionInfoList[currentQuestion].response = currentAutoValue;
-                QuestionInfoList[currentQuestion].value = currentAutoValue;
-                QuestionInfoList[currentQuestion].hasBeenAnswered = true;
-            }
-            else
-            {
-                // Loop through the controls on the panel
-                // There can only be one type of control at a time on the panel
-                foreach (Control control in responsePanel.Controls)
+                switch (control.GetType().Name)
                 {
-                    switch (control.GetType().Name)
-                    {
-                        // Radio buttons
-                        case "RadioButton":
-                            RadioButton radio = control as RadioButton;
-                            if (radio != null && radio.Checked)
-                            {
-                                // Save the info for the checked one
-                                surveyResponseText = radio.Text;
-                                surveyResponseValue = (string)radio.Tag;
-                                anyValueSelected = true;
-                            }
+                    // Radio buttons
+                    case "RadioButton":
+                        RadioButton radio = control as RadioButton;
+                        if (radio != null && radio.Checked)
+                        {
+                            // Save the info for the checked one
+                            surveyResponseText = radio.Text;
+                            surveyResponseValue = (string)radio.Tag;
+                            anyValueSelected = true;
+                        }
    
-                            // If none are seleceted, then the Text and Value variables 
-                            // were updated in the code for the 'Special' button_click.
-                            if (anyValueSelected == false)
+                        // If none are seleceted, then the Text and Value variables 
+                        // were updated in the code for the 'Special' button_click.
+                        if (anyValueSelected == false)
+                        {
+                            surveyResponseText = QuestionInfoList[currentQuestion].response;
+                            surveyResponseValue = QuestionInfoList[currentQuestion].value;
+                        }
+                        break;
+
+
+
+
+                    // Check boxes
+                    case "CheckBox":
+                        CheckBox checkbox = control as CheckBox;
+                        if (checkbox != null && checkbox.Checked)
+                        {
+                            if (surveyResponseText == "") 
                             {
-                                surveyResponseText = QuestionInfoList[currentQuestion].response;
-                                surveyResponseValue = QuestionInfoList[currentQuestion].value;
-                            }
-                            break;
-
-
-
-
-                        // Check boxes
-                        case "CheckBox":
-                            CheckBox checkbox = control as CheckBox;
-                            if (checkbox != null && checkbox.Checked)
-                            {
-                                if (surveyResponseText == "") 
-                                {
-                                    // This is the first checkBox selected
-                                    surveyResponseText = checkbox.Text;
-                                    surveyResponseValue = (string)checkbox.Tag;
-                                }
-                                else
-                                {
-                                    // There is already a previously selected checkbox
-                                    surveyResponseText = String.Concat(surveyResponseText, ",", checkbox.Text);
-                                    surveyResponseValue = String.Concat(surveyResponseValue, ",", checkbox.Tag);
-                                }
-                                anyValueSelected = true;
-                            }
-
-                            break;
-
-
-
-
-                        // Text box
-                        case "TextBox":
-                            // Special button was clicked
-                            if (control.Text == "")
-                            {
-                                surveyResponseText = QuestionInfoList[currentQuestion].response;
-                                surveyResponseValue = QuestionInfoList[currentQuestion].value;
+                                // This is the first checkBox selected
+                                surveyResponseText = checkbox.Text;
+                                surveyResponseValue = (string)checkbox.Tag;
                             }
                             else
                             {
-                                // Otherwise, get the value from the text box
-                                surveyResponseText = control.Text;
-                                surveyResponseValue = control.Text;
+                                // There is already a previously selected checkbox
+                                surveyResponseText = String.Concat(surveyResponseText, ",", checkbox.Text);
+                                surveyResponseValue = String.Concat(surveyResponseValue, ",", checkbox.Tag);
                             }
-                            break;
+                            anyValueSelected = true;
+                        }
+
+                        break;
 
 
 
 
-                        // Date/time picker
-                        case "DateTimePicker":
-                            MessageBox.Show("checkbox");
-                            break;
+                    // Text box
+                    case "TextBox":
+                        // Special button was clicked
+                        if (control.Text == "")
+                        {
+                            surveyResponseText = QuestionInfoList[currentQuestion].response;
+                            surveyResponseValue = QuestionInfoList[currentQuestion].value;
+                        }
+                        else
+                        {
+                            // Otherwise, get the value from the text box
+                            surveyResponseText = control.Text;
+                            surveyResponseValue = control.Text;
+                        }
+                        break;
 
 
 
-                        // Combobox
-                        case "ComboBox":
-                            MessageBox.Show("checkbox");
-                            break;
-                    }
+
+                    // Date/time picker
+                    case "DateTimePicker":
+                        MessageBox.Show("checkbox");
+                        break;
+
+
+
+                    // Combobox
+                    case "ComboBox":
+                        MessageBox.Show("checkbox");
+                        break;
                 }
-
-                // If none are seleceted, then the Text and Value variables 
-                // were updated in the code for the 'Special' button_click.
-                if (anyValueSelected == false)
-                {
-                    surveyResponseText = QuestionInfoList[currentQuestion].response;
-                    surveyResponseValue = QuestionInfoList[currentQuestion].value;
-                }
-
-
-                QuestionInfoList[currentQuestion].response = surveyResponseText;
-                QuestionInfoList[currentQuestion].value = surveyResponseValue;
-                QuestionInfoList[currentQuestion].hasBeenAnswered = true;
             }
+
+            // If none are seleceted, then the Text and Value variables 
+            // were updated in the code for the 'Special' button_click.
+            if (anyValueSelected == false && (controlType == "RadioButton" || controlType == "CheckBox"))
+            {
+                surveyResponseText = QuestionInfoList[currentQuestion].response;
+                surveyResponseValue = QuestionInfoList[currentQuestion].value;
+            }
+
+
+            // Update the QuestionInfoList
+            QuestionInfoList[currentQuestion].response = surveyResponseText;
+            QuestionInfoList[currentQuestion].value = surveyResponseValue;
+            QuestionInfoList[currentQuestion].hasBeenAnswered = true;
         }
 
 
 
 
-
+        // Save the data
         private void SaveData()
         {
             MessageBox.Show("Done");
         }
 
+
+        // Interview was cancelled
+        private void cancelButton_Click(object sender, EventArgs e)
+        {
+
+        }
 
 
 
@@ -919,8 +996,12 @@ namespace gist
 
 
 
-
-
+        // Function to return the value based on the fieldname passed to it
+        private string GetValue(string fieldname)
+        {
+            var question = QuestionInfoList.FirstOrDefault(o => o.fieldName == fieldname);
+            return question != null ? question.value : "-9";
+        }
 
 
     }
