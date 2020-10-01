@@ -13,10 +13,13 @@
     <text>Interviewer ID</text>
     <maxCharacters>2</maxCharacters>
     <rangeCheck minvalue='10' maxvalue ='50' message ='Invalid number!'></rangeCheck>
+    <!--<postskip>
+      <skip fieldname='intid' condition = '=' response='44' response_type='fixed' skiptofieldname ='radio1'></skip>
+    </postskip>-->
   </question>
 
 
-  <!--<question type='checkbox' fieldname='checkbox1' fieldtype ='text'>
+  <question type='checkbox' fieldname='checkbox1' fieldtype ='text'>
     <text>This is an example of a multiple response question</text>
     <responses>
       <response value='1'>Option 1 Text</response>
@@ -25,7 +28,13 @@
       <response value='4'>Option 4 Text</response>
       <response value='5'>Option 5 Text</response>
     </responses>
-  </question>-->
+    <postskip>
+      <skip fieldname='checkbox1' condition = 'does not contain' response='5' response_type='fixed' skiptofieldname ='some_dec'></skip>
+    </postskip>
+    <!--<preskip>
+      <skip fieldname='intid' condition = '=' response='44' response_type='fixed' skiptofieldname ='radio1'></skip>
+    </preskip>-->
+  </question>
   
   
   

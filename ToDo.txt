@@ -1,18 +1,22 @@
-- add progress bar
-- add try/catch to all functions
-- add combobox
-- add calendar
-- create all helper funcitons: GetResponse(), etc.
 - skips
-- logic checkbox
-- cancel interview
-- remove unused 'using' declarations
-- add special buttons
-- scroll bars for large text boxes
-- got through all functions and make sure all logic is in the function (compare to VB functions)
-- add possible values check
+- add special buttons- scroll bars for large text boxes
+- logic check
 - save data
 - view/modify survey
+- cancel interview
+- got through all functions and make sure all logic is in the function (compare to VB functions)
+- add combobox
+- add calendar
+- add progress bar
+- add try/catch to all functions
+- create all helper funcitons: GetResponse(), etc.
+- remove unused 'using' declarations
+- add possible values check
+- add more comments
+- write documentation
+- check for skips for non-numeric values
+
+
 
 
 
@@ -32,6 +36,8 @@ Specify all the question types in the xml file:
 	radio
 	checkbox
 	text
+	automatic
+	information
 	
 	
 fieldtype:
@@ -46,3 +52,39 @@ Numeric check (note name cahanged to 'numericCheck' from 'numeric_check'), also 
 	maxvalue - maximum vaue of number range
 	other_values - anotehr value than may be acceptable, but not in the range (can be a many values, separated by a comma)
 	message - Error message when number is not within range
+	
+	
+post skip:
+	fieldname - value from the current question 
+	condition -  = '&lt;&gt;' list all
+	response - value to check; if response_type = fixed, then hard code value; if response_type is dynamic, enter the fieldname to get the value
+	response_type - fixed, then hard code response; dynamic, then enter fieldname to get the value
+	skiptofieldname - fieldname to skip to
+	
+	
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	

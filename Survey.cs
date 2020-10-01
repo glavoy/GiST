@@ -293,43 +293,6 @@ namespace gist
 
 
 
-    //    Private Function TestNumericCheckOK(ByVal minvalue As String, ByVal maxvalue As String, ByVal other_values As String, ByVal message As String) As Boolean
-    //    TestNumericCheckOK = True
-    //    Try
-    //        Dim aControl As Control
-    //        Dim CurrentValue As String = "-9"
-
-    //        Dim QuestionType As String = ""
-    //        Dim FieldType As String = ""
-
-    //        'Get the current value from the text box
-    //        For Each aControl In Me.Controls
-    //            Select Case TypeName(aControl)
-    //                Case "TextBox"
-    //                    CurrentValue = aControl.Text
-    //            End Select
-    //        Next
-
-    //        'if it's a numeric response....
-    //        If IsNumeric(CurrentValue) = True Then
-    //            'if the response is numeric, but is a text question e.g. age, numer of acres of land, etc.
-    //            If CLng(CurrentValue) >= CLng(minvalue) And CLng(CurrentValue) <= CLng(maxvalue) Then
-    //                TestNumericCheckOK = True
-    //                Exit Function
-    //            ElseIf TestOtherValues(CLng(CurrentValue), other_values) = True Then
-    //                TestNumericCheckOK = True
-    //            Else
-    //                TestNumericCheckOK = False
-    //                MsgBox(message, MsgBoxStyle.Critical, "Invalid Response")
-    //            End If
-    //        End If
-    //    Catch ex As Exception
-    //        MessageBox.Show(ex.Message)
-    //    End Try
-    //End Function
-
-
-
 
 
 
@@ -345,24 +308,244 @@ namespace gist
             // To Do....
             // Check for skips........
 
-            // We can't use the current question to set the previous question if it
-            // is an automatic question since we need to go back to the last question
-            // displayed.  If we jsut go back to the previous, it is an aotomatic and
-            // will jsut move forward again!
-            if (QuestionInfoList[currentQuestion].quesType != "automatic")
+            // Check if there is a post skip for this question,
+            // if not....
+            if (CheckForSkip("postskip") == false)
             {
-                previousQuestion = currentQuestion;
+                // We can't use the current question to set the previous question if it
+                // is an automatic question since we need to go back to the last question
+                // displayed.  If we jsut go back to the previous, it is an aotomatic and
+                // will jsut move forward again!
+                if (QuestionInfoList[currentQuestion].quesType != "automatic")
+                {
+                    previousQuestion = currentQuestion;
+                }
+
+                // ... increment the question number
+                currentQuestion += 1;
+                // and set the prevQues for the current in the QuestionInfoList
+                QuestionInfoList[currentQuestion].prevQues = previousQuestion;
+            }
+            else // ...otherwise, set all skipped questions to have values of -9
+            {
+                for (int i = previousQuestion + 1; i < currentQuestion; i++)
+                {
+                    if (previousQuestion == -1)
+                    {
+                        previousQuestion = 0;
+                    }
+                    QuestionInfoList[i].hasBeenAnswered = false;
+                    QuestionInfoList[i].value = "-9";
+                    QuestionInfoList[i].response = "-9";
+                    QuestionInfoList[i].prevQues = -9;
+
+                }
             }
 
-            // Increment the question number
-            currentQuestion += 1;
-            QuestionInfoList[currentQuestion].prevQues = previousQuestion;
+
+            // Preskip
+            while (CheckForSkip("preskip") != false)
+            {
+                for (int j = previousQuestion + 1; j < currentQuestion; j++)
+                {
+                    if (QuestionInfoList[j].quesType != "automatic")
+                    {
+                        QuestionInfoList[j].hasBeenAnswered = false;
+                        QuestionInfoList[j].value = "-9";
+                        QuestionInfoList[j].response = "-9";
+                        QuestionInfoList[j].prevQues = -9;
+                    }
+                }
+            } 
         }
 
 
 
+        private Boolean CheckForSkip(string skiptype)
+        {
+            //Boolean returnValue = false;
+
+            // Create an XML node containing all the information about the question
+            XmlNode question = xmlSurvey.GetElementsByTagName("question").Item(currentQuestion);
+
+            foreach (XmlNode skipnode in question.SelectNodes(skiptype))
+            {
+                foreach (XmlNode skip in skipnode)
+                {
+                    string fieldname = skip.Attributes["fieldname"].Value;
+
+                    if (TestSkipCondition(fieldname,
+                                                    skip.Attributes["condition"].Value,
+                                                    skip.Attributes["response"].Value,
+                                                    skip.Attributes["response_type"].Value) == true)
+                    {
+                        // No need to set previous question if we are skipping this question (for a preskip)
+                        if (skiptype == "postskip")
+                        {
+                            previousQuestion = currentQuestion;
+                        }
+                        currentQuestion = GetQuestionNumber(skip.Attributes["skiptofieldname"].Value);
+                        QuestionInfoList[currentQuestion].prevQues = previousQuestion;
+                        return true;
+                    }
+                }
 
 
+
+
+
+
+
+                //for (var i = 0; i < skipnode.ChildNodes.Count; i++)
+                //{
+                //    returnValue = TestSkipCondition(skipnode.Attributes["fieldname"].Value,
+                //                                    skipnode.Attributes["condition"].Value,
+                //                                    skipnode.Attributes["response"].Value,
+                //                                    skipnode.Attributes["response_type"].Value);
+
+                //    if (returnValue == true)
+                //    {
+                //        // No need to set previous question if we are skipping this question (for a preskip)
+                //        if (skiptype == "postsip")
+                //        {
+                //            previousQuestion = currentQuestion;
+                //        }
+                //        currentQuestion = GetQuestionNumber(skipnode.Attributes["skiptofieldname"].Value);
+                //        QuestionInfoList[currentQuestion].prevQues = previousQuestion;
+                //        return true;
+                //    }
+
+                //}
+            }
+            return false;
+        }
+
+
+        private Boolean TestSkipCondition(string fieldname, string condition, string response, string response_type)
+        {
+            var question = QuestionInfoList.FirstOrDefault(o => o.fieldName == fieldname);
+            string currentValue = question.value;
+            int questionNumber = question.quesNum;
+            string questionType = question.quesType;
+            string fieldType = question.fieldType;
+
+
+
+            if (questionType == "checkbox" && currentValue.Length > 1)
+            {
+                return CheckMultipleResponses(currentValue, response, condition);
+            }
+            else if (currentValue.All(char.IsNumber) == true)
+            {
+                if (currentValue.All(char.IsNumber) == true)
+                {
+                    int compareValue = response_type == "fixed" ? int.Parse(response) : int.Parse(GetValue(response));
+                    switch (condition)
+                    {
+                        case "=":
+                            if (int.Parse(currentValue) == compareValue)
+                                return true;
+                            break;
+                        case "<":
+                            if (int.Parse(currentValue) < compareValue)
+                                return true;
+                            break;
+                        case ">":
+                            if (int.Parse(currentValue) > compareValue)
+                                return true;
+                            break;
+                        case "<>":
+                        case "does not contain":
+                            if (int.Parse(currentValue) != compareValue)
+                                return true;
+                            break;
+                        //case "does not contain":
+                        //    if (int.Parse(currentValue) != compareValue)
+                        //        return true;
+                        //    break;
+                    }
+                }
+            }
+
+            //if (currentValue.All(char.IsNumber) == true)
+            //{
+            //    if (currentValue.IndexOf(",") >= 0)
+            //    {
+            //        return CheckMultipleResponses(currentValue, response, condition);
+            //    }
+            //    else
+            //    {
+            //        int compareValue = response_type == "fixed" ? int.Parse(response) : int.Parse(GetValue(response));
+            //        switch (condition)
+            //        {
+            //            case "=":
+            //                if (int.Parse(currentValue) == compareValue)
+            //                    return true;
+            //                break;
+            //            case "<":
+            //                if (int.Parse(currentValue) < compareValue)
+            //                    return true;
+            //                break;
+            //            case ">":
+            //                if (int.Parse(currentValue) > compareValue)
+            //                    return true;
+            //                break;
+            //            case "<>":
+            //            case "does not contain":
+            //                if (int.Parse(currentValue) != compareValue)
+            //                    return true;
+            //                break;
+            //        }
+            //    }
+            else
+            {
+                string compareValue = response_type == "fixed" ? response : GetValue(response);
+                switch (condition)
+                {
+                    case "=":
+                        if (currentValue.CompareTo(compareValue) == 0)
+                                return true;
+                        break;
+                    case "<>":
+                        if (currentValue.CompareTo(compareValue) != 0)
+                            return true;
+                        break;
+                }
+            }
+            return false;
+        }
+
+
+
+        private bool CheckMultipleResponses(string currentValue, string response, string condition)
+        {
+            Boolean returnValue = false;
+
+            string[] responseArray = currentValue.Split(',');
+            for (var i = 0; i < responseArray.Length; i++)
+            {
+                switch (condition)
+                {
+                    case "does not contain":
+                        returnValue = true;
+                        if (responseArray[i] == response)
+                            return false;
+                        break;
+
+                    case "contains":
+                        returnValue = false;
+                        if (responseArray[i] == response)
+                            return true;
+                        break;
+
+                }
+            }
+            return returnValue;
+        }
+
+
+
+        // Function to show the question on the main survey screen
         private void CreateQuestion(int questionNum, Boolean ShowPreviousResponse)
         {
             // Create an XML node containing all the information about the question
@@ -1002,6 +1185,17 @@ namespace gist
             var question = QuestionInfoList.FirstOrDefault(o => o.fieldName == fieldname);
             return question != null ? question.value : "-9";
         }
+
+
+        // Function to return the question number of the fieldname passed to it
+        private int GetQuestionNumber(string fieldname)
+        {
+            var question = QuestionInfoList.FirstOrDefault(o => o.fieldName == fieldname);
+            return question != null ? question.quesNum : -9;
+        }
+
+
+
 
 
     }
