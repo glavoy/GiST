@@ -78,6 +78,14 @@ namespace gist
         int previousQuestion;
 
 
+        // Values for N/A, Refuse and Don't know buttons
+        string naValue = "-6";
+        string dontKnowValue = "-7";
+        string refuseValue = "-8";
+
+
+        // Used as the background colour if a 'special button' is selected
+        Color selectedColour = Color.PaleVioletRed;
 
 
 
@@ -173,24 +181,9 @@ namespace gist
                 {
                     SaveDataToList();
                 }
-               
 
-                // If we are not at the end of the survey....
-                if (currentQuestion < numQuestions - 1)
-                {
-                    // ...set the next and previous question numbers
-                    SetQuestionNumbers();
+                ShowNextQuestion();
 
-                    // ...show the next question 
-                    CreateQuestion(currentQuestion, QuestionInfoList[currentQuestion].hasBeenAnswered);
-                }
-                else
-                {
-                    // ...otherwise, save the data
-                    SaveData();
-                    this.Close();
-                    this.Dispose();
-                }
             }
         }
 
@@ -232,6 +225,43 @@ namespace gist
             CreateQuestion(currentQuestion, QuestionInfoList[currentQuestion].hasBeenAnswered);
         }
 
+
+
+        // Click event for the Don't know button
+        private void dontKnowButton_Click(object sender, EventArgs e)
+        {
+            SpecialButtonClick(int.Parse(dontKnowValue));
+        }
+
+
+
+        // Click event for the Not Applicable button
+        private void notApplicableButton_Click(object sender, EventArgs e)
+        {
+            SpecialButtonClick(int.Parse(naValue));
+        }
+
+
+
+        // Click event for the Refuse to Answer button
+        private void refuseToAnswerButton_Click(object sender, EventArgs e)
+        {
+            SpecialButtonClick(int.Parse(refuseValue));
+        }
+
+
+        // Update info special button and show the next question
+        private void SpecialButtonClick(int buttonValue)
+        {
+            // pause half a second before moving to next question
+            System.Threading.Thread.Sleep(500);
+
+            QuestionInfoList[currentQuestion].response = buttonValue.ToString();
+            QuestionInfoList[currentQuestion].value = buttonValue.ToString();
+            QuestionInfoList[currentQuestion].hasBeenAnswered = true;
+
+            ShowNextQuestion();
+        }
 
 
 
@@ -295,7 +325,25 @@ namespace gist
 
 
 
+        private void ShowNextQuestion()
+        {
+            // If we are not at the end of the survey....
+            if (currentQuestion < numQuestions - 1)
+            {
+                // ...set the next and previous question numbers
+                SetQuestionNumbers();
 
+                // ...show the next question 
+                CreateQuestion(currentQuestion, QuestionInfoList[currentQuestion].hasBeenAnswered);
+            }
+            else
+            {
+                // ...otherwise, save the data
+                SaveData();
+                this.Close();
+                this.Dispose();
+            }
+        }
 
 
 
@@ -389,33 +437,6 @@ namespace gist
                         return true;
                     }
                 }
-
-
-
-
-
-
-
-                //for (var i = 0; i < skipnode.ChildNodes.Count; i++)
-                //{
-                //    returnValue = TestSkipCondition(skipnode.Attributes["fieldname"].Value,
-                //                                    skipnode.Attributes["condition"].Value,
-                //                                    skipnode.Attributes["response"].Value,
-                //                                    skipnode.Attributes["response_type"].Value);
-
-                //    if (returnValue == true)
-                //    {
-                //        // No need to set previous question if we are skipping this question (for a preskip)
-                //        if (skiptype == "postsip")
-                //        {
-                //            previousQuestion = currentQuestion;
-                //        }
-                //        currentQuestion = GetQuestionNumber(skipnode.Attributes["skiptofieldname"].Value);
-                //        QuestionInfoList[currentQuestion].prevQues = previousQuestion;
-                //        return true;
-                //    }
-
-                //}
             }
             return false;
         }
@@ -459,44 +480,10 @@ namespace gist
                             if (int.Parse(currentValue) != compareValue)
                                 return true;
                             break;
-                        //case "does not contain":
-                        //    if (int.Parse(currentValue) != compareValue)
-                        //        return true;
-                        //    break;
                     }
                 }
             }
 
-            //if (currentValue.All(char.IsNumber) == true)
-            //{
-            //    if (currentValue.IndexOf(",") >= 0)
-            //    {
-            //        return CheckMultipleResponses(currentValue, response, condition);
-            //    }
-            //    else
-            //    {
-            //        int compareValue = response_type == "fixed" ? int.Parse(response) : int.Parse(GetValue(response));
-            //        switch (condition)
-            //        {
-            //            case "=":
-            //                if (int.Parse(currentValue) == compareValue)
-            //                    return true;
-            //                break;
-            //            case "<":
-            //                if (int.Parse(currentValue) < compareValue)
-            //                    return true;
-            //                break;
-            //            case ">":
-            //                if (int.Parse(currentValue) > compareValue)
-            //                    return true;
-            //                break;
-            //            case "<>":
-            //            case "does not contain":
-            //                if (int.Parse(currentValue) != compareValue)
-            //                    return true;
-            //                break;
-            //        }
-            //    }
             else
             {
                 string compareValue = response_type == "fixed" ? response : GetValue(response);
@@ -570,6 +557,67 @@ namespace gist
                 case "information":
                     AddInformation(question);
                     break;
+            }
+
+
+
+
+
+
+            if (question.Attributes["type"].Value != "automatic")
+            {
+                // Default all special buttons to not visible,
+                // in case they were visible from the previous question
+                notApplicableButton.Visible = false;
+                refuseToAnswerButton.Visible = false;
+                dontKnowButton.Visible = false;
+
+                notApplicableButton.BackColor = Color.LightGray;
+                refuseToAnswerButton.BackColor = Color.LightGray;
+                dontKnowButton.BackColor = Color.LightGray;
+
+
+                // Check if Not Applicable Button needs to be shown 
+                // and if it needs to be selected 
+                if (question.SelectSingleNode("na") != null)
+                {
+                    notApplicableButton.Visible = true;
+                    if (ShowPreviousResponse == true && QuestionInfoList[currentQuestion].value == naValue)
+                    {
+                        notApplicableButton.BackColor = selectedColour;
+                        EnableNextButton();
+                        NextButton.Focus();
+                    }
+                }
+
+                // Check if Refuse Button needs to be shown 
+                // and if it needs to be selected 
+                if (question.SelectSingleNode("refuse") != null)
+                {
+                    refuseToAnswerButton.Visible = true;
+                    if (ShowPreviousResponse == true && QuestionInfoList[currentQuestion].value == refuseValue)
+                    {
+                        refuseToAnswerButton.BackColor = selectedColour;
+                        EnableNextButton();
+                        NextButton.Focus();
+                    }
+                }
+
+
+                // Check if Not Applicable Button needs to be shown 
+                // and if it needs to be selected 
+                if (question.SelectSingleNode("dont_know") != null)
+                {
+                    dontKnowButton.Visible = true;
+                    if (ShowPreviousResponse == true && QuestionInfoList[currentQuestion].value == dontKnowValue)
+                    {
+                        dontKnowButton.BackColor = selectedColour;
+                        EnableNextButton();
+                        NextButton.Focus();
+                    }
+                }
+
+
             }
 
             // If we are supposed to show the previous response or if it the last question
@@ -1193,6 +1241,7 @@ namespace gist
             var question = QuestionInfoList.FirstOrDefault(o => o.fieldName == fieldname);
             return question != null ? question.quesNum : -9;
         }
+
 
 
 

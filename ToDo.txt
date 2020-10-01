@@ -1,4 +1,3 @@
-- skips
 - add special buttons- scroll bars for large text boxes
 - logic check
 - save data
@@ -62,7 +61,8 @@ post skip:
 	skiptofieldname - fieldname to skip to
 	
 	
-
+Special buttons:
+	- do not need a value in the xml file - hard coded in the Survey.cs file
 	
 	
 	
