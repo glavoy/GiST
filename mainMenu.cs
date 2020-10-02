@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -17,8 +18,45 @@ namespace gist
             InitializeComponent();
         }
 
-        PublicVars PublicVars = new PublicVars();
+        // data file
+        string dataFile = string.Concat(@"..\..\data\gist.txt");
 
+
+
+
+        // New form loading
+        private void MainMenu_Load(object sender, EventArgs e)
+        {
+            string[] lines = File.ReadAllLines(dataFile);
+
+            List<string> uniqueIDs = new List<string>();
+
+            foreach (string ln in lines)
+            {
+                //string[] ids = ln.Split(',');
+
+                string[] ids = ln.Split(new string[] { ";;;;" }, StringSplitOptions.None);
+
+
+                if (ids.Length > 1)
+                {
+                    uniqueIDs.Add(ids[PublicVars.subjidPos]);
+                }
+            }
+
+
+            foreach (string id in uniqueIDs)
+            {
+                string subjid = id.Replace("\"", "");
+                if (subjid != "subjid")
+                    uniqueIDSComboBox.Items.Add(subjid);
+            }
+
+
+        }
+
+
+        // Start a new survey
         private void newSurveyButton_Click(object sender, EventArgs e)
         {
             PublicVars.subjid = subjIDTextBox.Text;
@@ -28,13 +66,19 @@ namespace gist
             Form survey = new Survey();
             survey.ShowDialog();
             survey.Dispose();
+        }
 
 
-            // for testing purposes - will delete
-            subjIDLabel.Text = PublicVars.subjid;
+        // Modify existing survey
+        private void modifySurveyButton_Click(object sender, EventArgs e)
+        {
+            PublicVars.subjid = uniqueIDSComboBox.Text;
+            PublicVars.survey = "gist";
+            PublicVars.modifyingSurvey = true;
 
-
-
+            Form survey = new Survey();
+            survey.ShowDialog();
+            survey.Dispose();
         }
 
 
@@ -44,5 +88,7 @@ namespace gist
         {
             System.Environment.Exit(0);
         }
+
+
     }
 }

@@ -1,11 +1,13 @@
-<?xml version='1.0' encoding='utf-8'?>
-<survey name='gist'>
+<survey version ='XML_2020.10.02' name='gist'>
 
 
   <question type='automatic' fieldname='swver' fieldtype ='text'>
   </question>
 
   <question type='automatic' fieldname='starttime' fieldtype ='datetime'>
+  </question>
+
+  <question type='automatic' fieldname='subjid' fieldtype ='text'>
   </question>
   
 
@@ -19,7 +21,7 @@
   </question>
 
 
-  <!--<question type='checkbox' fieldname='checkbox1' fieldtype ='text'>
+  <question type='checkbox' fieldname='checkbox1' fieldtype ='text'>
     <text>This is an example of a multiple response question</text>
     <responses>
       <response value='1'>Option 1 Text</response>
@@ -29,9 +31,9 @@
       <response value='5'>Option 5 Text</response>
     </responses>
     <postskip>
-      <skip fieldname='checkbox1' condition = 'does not contain' response='5' response_type='fixed' skiptofieldname ='some_dec'></skip>
+      <skip fieldname='checkbox1' condition = 'does not contain' response='5' response_type='fixed' skiptofieldname ='text1'></skip>
     </postskip>
-  </question>-->
+  </question>
   
   
   
@@ -49,9 +51,9 @@
 
   
   
-  <question type ='text' fieldname ='some_dec' fieldtype ='decimal'>
+  <question type ='text' fieldname ='text1' fieldtype ='text'>
     <text>Open text example.  Enter some text</text>
-    <maxCharacters>4</maxCharacters>
+    <maxCharacters>500</maxCharacters>
   </question>
   
   

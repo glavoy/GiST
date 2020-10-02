@@ -1,20 +1,21 @@
-- add special buttons- scroll bars for large text boxes
 - logic check
-- save data
+- IsValidResponse needs to be updated - don't return until everythinig is complete = maybe works already
 - view/modify survey
 - cancel interview
-- got through all functions and make sure all logic is in the function (compare to VB functions)
-- add combobox
-- add calendar
+- for radio and checkbox, make columns when reaching 12 options
+
+- go through all functions and make sure all logic is in the function (compare to VB functions)
+- add combobox - need to add to logic check as well
+- add calendar - need to add to logic check as well
 - add progress bar
 - add try/catch to all functions
-- create all helper funcitons: GetResponse(), etc.
+- create all helper functions: GetResponse(), etc. - maybe don't need these
 - remove unused 'using' declarations
 - add possible values check
 - add more comments
 - write documentation
 - check for skips for non-numeric values
-
+- add functionality so that user cannot click quickly on the radio buttons
 
 
 
@@ -64,10 +65,15 @@ post skip:
 Special buttons:
 	- do not need a value in the xml file - hard coded in the Survey.cs file
 	
+XML file must begin with:
+	<survey version ='2020.10.02' name='gist'>
 	
 	
-	
-	
+Data:
+	- version will be saved on a single line, followed immediately by all the field names for that version on the next line
+	- will check if version exists when beginning a new survey - if not, write the version and field names
+	- if
+
 	
 	
 	

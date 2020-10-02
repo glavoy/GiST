@@ -1,10 +1,9 @@
-﻿using gist.Properties;
-using System;
+﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
-using System.Windows.Forms.VisualStyles;
 using System.Xml;
 using System.Configuration;
 
@@ -29,7 +28,6 @@ namespace gist
         // minimum lenght is reached
         readonly Tuple<string, int>[] minLengths =
               { new Tuple<string, int>("intid", 2),
-                new Tuple<string, int>("some_dec", 4),
                 new Tuple<string, int>("add_new", 1) };
 
         /* End of configuration section
@@ -37,11 +35,25 @@ namespace gist
 
 
         // PublicVars has all the global public variables
-        PublicVars PublicVars = new PublicVars();
+        //PublicVars PublicVars = new PublicVars();
 
 
         // Variable for the xml document
         readonly XmlDocument xmlSurvey = new XmlDocument();
+
+
+        // Variables for the software version and the xml version
+        string swVer;
+        string xmlVer;
+
+
+        // Path to data file
+        string dataFile = string.Concat("..\\..\\data\\", PublicVars.survey, ".txt");
+
+
+        // Path to XML file
+        string xmlFile = string.Concat("..\\..\\xml\\", PublicVars.survey, ".xml");
+
 
 
         // QuestionInfo class
@@ -88,6 +100,13 @@ namespace gist
         Color selectedColour = Color.PaleVioletRed;
 
 
+        // Used for the text box control
+        int charPerLine = 81;
+        int lineHeight = 19;
+
+
+
+
 
 
 
@@ -95,7 +114,15 @@ namespace gist
         private void Survey_Load(object sender, EventArgs e)
         {
             // Load the xml document for the current survey
-            xmlSurvey.Load(@"..\..\xml\gist.xml");
+            xmlSurvey.Load(@xmlFile);
+
+            // XML version
+            XmlElement root = xmlSurvey.DocumentElement;
+            xmlVer = root.GetAttribute("version");
+
+            // Software version
+            swVer = string.Concat(ConfigurationManager.AppSettings["swver"], "_", xmlVer);
+
 
             // Get the total number of questions
             // Total number of nodes named 'question' 
@@ -123,7 +150,65 @@ namespace gist
         // And save them to QuestionInfoList
         private void GetResponsesFromPreviousSurvey()
         {
-            // To Do...
+            string[] lines = File.ReadAllLines(dataFile);
+
+            List<string> uniqueIDs = new List<string>();
+
+            foreach (string ln in lines)
+            {
+                //string[] data = ln.Split(',');
+                string[] data = ln.Split(new string[] { ";;;;" }, StringSplitOptions.None);
+                if (data.Length > 1)
+                {
+                    string subjid = data[PublicVars.subjidPos].Replace("\"", "");
+
+                    if (subjid == PublicVars.subjid)
+                    {
+                        XmlNodeList question = xmlSurvey.GetElementsByTagName("question");
+                        for (int i = 0; i < question.Count - 1; i++)
+                        {
+                            // Update the information for the particular question
+                            var curQuestion = new QuestionInfo
+                            {
+                                quesNum = i,
+                                fieldName = question[i].Attributes["fieldname"].Value.Replace("\"", ""),
+                                fieldType = question[i].Attributes["fieldtype"].Value.Replace("\"", ""),
+                                quesType = question[i].Attributes["type"].Value.Replace("\"", ""),
+                                response = data[i].Replace("\"", ""),
+                                value = data[i].Replace("\"", ""),
+                                prevQues = -9,
+                                hasBeenAnswered = data[i] != "-9"
+                            };
+
+                            // Add the question to the list
+                            QuestionInfoList.Add(curQuestion);
+                        }
+                    }
+                }
+            }
+            // Need to add this for the last 'information' question since it is not 
+            // included in the data
+            var infoQuestion = new QuestionInfo
+            {
+                quesNum = numQuestions,
+                fieldName = "end_of_questions",
+                fieldType = "n/a",
+                quesType = "information",
+                response = "-9",
+                value = "-9",
+                prevQues = -9,
+                hasBeenAnswered = false
+            };
+
+            // Add the question to the list
+            QuestionInfoList.Add(infoQuestion);
+
+
+            // Set Current and Previous question to 0 and create the first question
+            previousQuestion = -1;
+            currentQuestion = 0;
+            QuestionInfoList[currentQuestion].prevQues = previousQuestion;
+            CreateQuestion(currentQuestion, true);
 
         }
 
@@ -155,6 +240,33 @@ namespace gist
                 QuestionInfoList.Add(curQuestion);
             }
 
+
+            // Check to see if this version of the questionnaire and xml file 
+            // is already stored in the data file
+            Boolean verFound = false;
+
+            // If it exists, read it
+            if (File.Exists(dataFile))
+            {
+                // Store each line in array of strings 
+                string[] lines = File.ReadAllLines(dataFile);
+
+                foreach (string ln in lines)
+                {
+                    if (ln.CompareTo(swVer) == 0)
+                        verFound = true;
+                }
+                // Version not found in data file
+                if (verFound == false)
+                    WriteVerToDataFile();
+            }
+            // It does not exist, so write variable names for the current version
+            else
+            {
+                WriteVerToDataFile();
+            }
+
+
             // Set Current and Previous questions and create the first question
             previousQuestion = -1;
             currentQuestion = 0;
@@ -163,6 +275,28 @@ namespace gist
         }
 
 
+        // Write the version and 
+        private void WriteVerToDataFile()
+        {
+            // Variable for string of data to write to file
+            string dataToSave = "";
+
+            // Use numQuestions - 1 because we do not want to include the last 
+            // 'information' question.
+            for (var i = 0; i < numQuestions - 1; i++)
+            {
+                if (i != numQuestions - 2)
+                {
+                    dataToSave = string.Concat(dataToSave, "\"", QuestionInfoList[i].fieldName, "\"", ",");
+                }
+                else
+                {
+                    dataToSave = string.Concat(dataToSave, "\"", QuestionInfoList[i].fieldName, "\"");
+                }
+            }
+            File.AppendAllText(dataFile, swVer + Environment.NewLine);
+            File.AppendAllText(dataFile, dataToSave + Environment.NewLine);
+        }
 
 
 
@@ -276,7 +410,6 @@ namespace gist
 
 
             // Range Check
-
             // Check if there is a Range Check for this question
             XmlNode rangeCheck = question.SelectSingleNode("rangeCheck");
 
@@ -294,6 +427,29 @@ namespace gist
 
 
             // Logic check
+            // Check if there is a Range Check for this question
+            XmlNode logicCheck = question.SelectSingleNode("logic_check");
+
+            // If there is a numeric check, call the RangeCheck() function
+            if (logicCheck != null)
+            {
+                foreach (XmlNode logic in logicCheck)
+                {
+                    string fieldname = logic.Attributes["fieldname"].Value;
+
+                    //TesLogicCheckOK(fieldname, condition, response, response_type, currentresponse, message)
+
+                    if (TesLogicCheckOK(logic.Attributes["fieldname"].Value,
+                                        logic.Attributes["condition"].Value,
+                                        logic.Attributes["response"].Value,
+                                        logic.Attributes["response_type"].Value,
+                                        logic.Attributes["currentresponse"].Value,
+                                        logic.Attributes["message"].Value) == false)
+                    {
+                        return false;
+                    }
+                }
+            }
 
 
             // Manaul checks
@@ -322,6 +478,10 @@ namespace gist
         }
 
 
+        private Boolean TesLogicCheckOK(string fieldname, string condition, string response, string response_type, string currentresponse, string message)
+        {
+            return true;
+        }
 
 
 
@@ -420,12 +580,10 @@ namespace gist
             {
                 foreach (XmlNode skip in skipnode)
                 {
-                    string fieldname = skip.Attributes["fieldname"].Value;
-
-                    if (TestSkipCondition(fieldname,
-                                                    skip.Attributes["condition"].Value,
-                                                    skip.Attributes["response"].Value,
-                                                    skip.Attributes["response_type"].Value) == true)
+                    if (TestSkipCondition(skip.Attributes["fieldname"].Value,
+                                          skip.Attributes["condition"].Value,
+                                          skip.Attributes["response"].Value,
+                                          skip.Attributes["response_type"].Value) == true)
                     {
                         // No need to set previous question if we are skipping this question (for a preskip)
                         if (skiptype == "postskip")
@@ -841,8 +999,8 @@ namespace gist
             TextBox newTextBox = new TextBox
             {
                 Text = "",
-                Location = new Point(48, 64),
-                Size = new Size(104, 16)
+                Location = new Point(20, 20),
+                Width = 500
             };
 
             // Set the MaxLength property based on 'maxCharacters' in the XML file
@@ -851,6 +1009,29 @@ namespace gist
             {
                 newTextBox.MaxLength = int.Parse(hasMaxCharacters.InnerText);
             }
+
+            
+
+            // Calculate the number of lines that should be allowed for.
+            if (newTextBox.MaxLength > 0)
+            {
+                //int numLines = (newTextBox.MaxLength \ charPerLine) + 1;
+                int numLines = (newTextBox.MaxLength / charPerLine) + 1;
+
+                // Calculate how large the textbox should be, and whether scrollbars are necessary.
+                if (numLines == 1)
+                {
+                    newTextBox.Multiline = false;
+                }
+                else
+                {
+                    newTextBox.Multiline = true;
+                    newTextBox.Height = 8 * lineHeight;
+                    newTextBox.ScrollBars = ScrollBars.Vertical;
+                }
+
+            }
+
 
             // Add the Text box to the panel
             responsePanel.Controls.Add(newTextBox);
@@ -865,9 +1046,6 @@ namespace gist
             newTextBox.KeyUp += new KeyEventHandler(TextBoxHandlerKeyUp);
             newTextBox.KeyPress += new KeyPressEventHandler(TextBoxHandlerKeyPress);
 
-
-            // To Do
-            // Add 'special' buttons
 
             if (QuestionInfoList[currentQuestion].hasBeenAnswered == true)
             {
@@ -971,7 +1149,7 @@ namespace gist
             {
                 // Software Version
                 case "swver":
-                    currentAutoValue = ConfigurationManager.AppSettings["swver"];
+                    currentAutoValue = swVer;
                     break;
 
 
@@ -987,6 +1165,12 @@ namespace gist
                         currentAutoValue = now.ToString("dd/MM/yyyy HH:mm:ss");
      
                     }
+                    break;
+
+
+                // Sunject ID
+                case "subjid":
+                    currentAutoValue = PublicVars.subjid;
                     break;
             }
 
@@ -1181,7 +1365,18 @@ namespace gist
         // Save the data
         private void SaveData()
         {
-            MessageBox.Show("Done");
+            // Variable for string of data to write to file
+            string dataToSave = "";
+
+            // Use numQuestions - 1 because we do not want to include the last 
+            // 'information' question.
+            for (var i = 0; i < numQuestions - 1; i++)
+            {
+                dataToSave = i != numQuestions - 2 ? string.Concat(dataToSave, "\"", QuestionInfoList[i].value, "\"", ";;;;") : 
+                                                     dataToSave = string.Concat(dataToSave, "\"", QuestionInfoList[i].value, "\"");
+            }
+            File.AppendAllText(dataFile, dataToSave + Environment.NewLine);
+            MessageBox.Show("Data has been saved");
         }
 
 
