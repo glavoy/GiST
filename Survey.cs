@@ -828,7 +828,8 @@ namespace gist
                 {
                     Text = ResponseArray[i, 0],
                     Tag = ResponseArray[i, 1],
-                    Location = new Point(5, 20 * i)
+                    Location = new Point(5, 20 * i),
+                    Width = 500
                 };
                 responsePanel.Controls.Add(rdo);
 
@@ -1398,10 +1399,12 @@ namespace gist
         }
 
 
+
+
         // Interview was cancelled
         private void cancelButton_Click(object sender, EventArgs e)
         {
-
+            this.Close();
         }
 
 
