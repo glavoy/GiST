@@ -1,0 +1,4 @@
+##Software_Version_Gist_2020_10_02_XML_2020.10.02
+"swver","starttime","subjid","intid","fakefiledname","participantsname","checkbox1","checkboxother","radio1","text1"
+"##Software_Version_Gist_2020_10_02_XML_2020.10.02";;;;"17/05/2023 11:16:38";;;;"123";;;;"11";;;;"WERWE";;;;"WERWER";;;;"3,4,5";;;;"WEREW";;;;"4";;;;"WERRWR"
+"##Software_Version_Gist_2020_10_02_XML_2020.10.02";;;;"17/05/2023 11:16:38";;;;"123";;;;"11";;;;"WERWE";;;;"WERWER";;;;"3,4,5";;;;"WEREW";;;;"4";;;;"WERRWR"
