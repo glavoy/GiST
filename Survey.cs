@@ -503,6 +503,7 @@ namespace gist
                 this.Close();
                 this.Dispose();
             }
+            subjIDLabel.Text = PublicVars.subjid;
         }
 
 
@@ -1147,12 +1148,6 @@ namespace gist
 
             switch (QuestionInfoList[currentQuestion].fieldName)
             {
-                // Software Version
-                case "swver":
-                    currentAutoValue = swVer;
-                    break;
-
-
                 // Start time of interview
                 case "starttime":
                     currentAutoValue = GetValue("starttime");
@@ -1168,9 +1163,32 @@ namespace gist
                     break;
 
 
-                // Sunject ID
+
+                // Sunbect ID
                 case "subjid":
                     currentAutoValue = PublicVars.subjid;
+                    break;
+
+
+
+                // Software Version
+                case "swver":
+                    currentAutoValue = swVer;
+                    break;
+
+
+                // Stop time of interview
+                case "stoptime":
+                    currentAutoValue = GetValue("stoptime");
+                    if (currentAutoValue == "" ||
+                        currentAutoValue == "01/01/1899 00:00:00" ||
+                        currentAutoValue == "01/01/1899 12:00:00 AM" ||
+                        currentAutoValue == "-9")
+                    {
+                        DateTime now = DateTime.Now;
+                        currentAutoValue = now.ToString("dd/MM/yyyy HH:mm:ss");
+
+                    }
                     break;
             }
 
